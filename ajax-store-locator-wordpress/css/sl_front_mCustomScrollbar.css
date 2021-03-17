@@ -1,0 +1,107 @@
+#sl_loadAdwords {
+		padding-left: 20px;
+
+}
+
+.scrollgeneric {line-height: 1px;font-size: 1px;position: absolute;top: 0; left: 0;}
+
+.vscrollerbase {
+visibility: visible !important;
+}
+
+.vscrollerbase {
+background: none repeat scroll 0 0 #AFA5A4;
+    border-radius: 13px 13px 13px 13px;
+    width: 15px;
+}
+.vscrollerbar {
+background: none repeat scroll 0 0 #4A4A4A;
+    border-radius: 10px 10px 10px 10px;
+   margin: 0 1px;
+    width: 13px;
+}
+
+.vscrollerbar, .hscrollerbar {
+padding: 0px;
+z-index: 2;
+opacity: 1;
+}
+
+.hscrollerbarbeg {
+  
+height: 15px;
+width: 15px !important;
+}
+.hscrollerbarend {
+ 
+height: 15px;
+width: 15px;
+}
+.scrollerjogbox {
+width: 15px;
+height: 15px;
+top: auto; left: auto;
+bottom: 0px; right: 0px;
+ 
+}
+.vscrollerbasebeg {
+ 
+width: 15px;
+height: 0px !important;
+}
+.vscrollerbaseend {
+ 
+height: 15px;
+width: 0px;
+}
+.hscrollerbasebeg {
+ 
+height: 15px;
+width: 15px !important;
+}
+.hscrollerbaseend {
+height: 15px;
+width: 15px;
+}
+
+#project_list_scroll_vscrollerbase{background:#1f1f1f; }
+#project_list_scroll_vscrollerbar{background:#a09ea1; margin: 0 0 0 2px}
+
+.ms-drop li {
+text-align:left;
+}
+ 
+#sloc_topBar {
+position:absolute;z-index:1000;border:1px;left:110px;width:950px;height:45px;
+margin-top:10px;
+background-color:white;
+text-align:center;
+}
+
+#sloc_topBar input {
+/*	height: 24px;*/
+	border-width:1px;
+}
+
+#sloc_bottomBar {
+position:absolute;z-index:1000;border:1px;bottom: 20px;left:110px;width:30%;
+background-color:white;
+text-align:center;
+margin:10px 0 0 10px;
+}
+
+#sloc_bottomBar input {
+	margin-left:20px;
+}
+#sloc_bottomBar label {
+	cursor: pointer;
+}
+/*
+.colorBox {
+	display:block;
+	position:relative;
+	left: 80px;
+	width:25px;
+	height:25px;
+	border:#666 thin 1px;
+} */

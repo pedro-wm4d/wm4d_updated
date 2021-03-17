@@ -1,0 +1,83 @@
+/*chdir(SL_PLUGIN_PATH.'phpxls');
+	require_once 'Writer.php';
+	chdir('..');
+	
+	$sql="SELECT `name` , `address` , `city` , `state` , `country` , `zip_code` , `lat` , `lng` , `phone` , `fax` , `email` , `website` , SC.`category` AS Category FROM `$sl_tb_stores` S
+		  INNER JOIN `$sl_tb_storecategory` SC ON SC.`categoryid` = S.`Type`";
+    $rec = mysql_query($sql) or die (mysql_error());
+   
+    $num_fields = mysql_num_fields($rec);
+	$headArray = array(
+				 'Name'
+				,'Address'
+				,'City'
+				,'State'
+				,'Country'
+				,'Zip_code'
+				,'Lat'
+				,'Lng'
+				,'Phone'
+				,'Fax'
+				,'Email'
+				,'Website'
+				,'Category'
+			);
+	$LoadStores =  array();
+	array_push($LoadStores, $headArray);
+	$ValArray = array();
+    while($row = mysql_fetch_row($rec)){
+        $line = '';	
+		$ValArray = array();
+        foreach($row as $value){   		
+			array_push($ValArray, $value);
+        }		
+		array_push($LoadStores, $ValArray);	
+    }
+
+	$fileName = "Stores_".date('d-m-M', time()).".xls";
+	$workbook = new Spreadsheet_Excel_Writer('xcel_export/'.$fileName);
+	
+	$format_und =& $workbook->addFormat();
+	$format_und->setBold();
+	$format_und->setColor('black');
+	$format_und->setFontFamily('Calibri');
+	$format_und->setSize(12);
+
+	$format_reg =& $workbook->addFormat();
+	$format_reg->setColor('black');
+	$format_reg->setFontFamily('Calibri');
+	$format_reg->setSize(11);
+
+	$arr = array(
+		  $fileName =>$LoadStores,
+	);
+
+	foreach($arr as $wbname=>$rows){
+		$rowcount = count($rows);
+		$colcount = count($rows[0]);
+
+		$worksheet =& $workbook->addWorksheet($wbname);
+
+		$worksheet->setColumn(0,0, 6.14);
+		$worksheet->setColumn(1,3,15.00);
+		$worksheet->setColumn(4,4, 8.00);
+		
+		for( $j=0; $j<$rowcount; $j++ )
+		{
+			for($i=0; $i<$colcount;$i++)
+			{
+				$fmt  =& $format_reg;
+				if ($j==0)
+					$fmt =& $format_und;
+
+				if (isset($rows[$j][$i]))
+				{
+					$data=$rows[$j][$i];
+					$worksheet->write($j, $i, $data, $fmt);
+				}
+			}
+		}
+	}
+	$workbook->close();
+	header("Location:".$sl_gizmo_store->plugin_url()."/sl_file_download.php?download_file=xcel_export/".$fileName);
+	exit();*/

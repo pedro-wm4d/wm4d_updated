@@ -1,0 +1,64 @@
+.sp_close_popup{
+    background: url("../images/close.png") no-repeat scroll 0 0 transparent;
+    display: block;
+    outline: 0;
+    border-style: none;
+    position: absolute;
+    right: 0px;
+    text-decoration: none;
+    top: 0;
+    width: 22px;
+}
+.sp_msg_error{
+     background: none repeat scroll 0 0 #F9F9F9 !important;
+    border: 1px solid #EFEFEF;
+    color: #666666;
+    display: none;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 3px 4px 1px;
+    text-align: left;
+    width: 92%;
+    margin-top:10px;
+}
+.sp_msg_success{
+    background: none repeat scroll 0 0 #F9F9F9 !important;
+    border: 1px solid #EFEFEF;
+    color: #666666;
+    display: none;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 3px 4px 1px;
+    text-align: left;
+    width: 92%;
+    margin:10px 0;
+}
+.sp_SearchR{
+    margin:0px !important;
+    list-style: none !important;
+    width:95.75%;
+}
+.sp_SearchR li{
+    margin:0px !important;
+    list-style: none !important;
+    background: #FFF;
+    color:#000;
+    padding:3px;
+    border: 2px solid #DFDFDF;
+    cursor: pointer;
+	float:left;
+	width:100%
+}
+.sp_wh_span {
+  display: inline-block;
+  font-size: 11px;
+  margin: 0 5px;
+}
+.sp_SearchR li.active{
+    background: #CCC;
+    color:#000;
+}
+.sp_front_end_map{
+  
+}
+#sp_searchResult{height:100%; overflow-y: auto; margin:5px 0; }

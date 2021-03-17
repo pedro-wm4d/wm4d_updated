@@ -1,0 +1,35 @@
+=== Ajax Store Locator for wordpress(Google Maps) ===
+
+Version 1.0.0
+ 1) Supports Responsive Layouts
+ 2) Language support using CodeStyling Localization(Plugin).
+ 3) Bulk Import and Export of Locations
+ 4) Admin Dashboard for Locations Management
+ 5) Social Sharing of locations (Facebook, Twitter and Pinterest)
+ 6) Auto and Manual Plotting of Location Addresses.
+ 7) Drawer Panel for enlarged map view.
+ 8) Category filter for locations
+ 9) Configurable Layout (Browse and Search Modes)
+ 10) Directions to the Locations and more features.
+
+ Updated On 9/3/2013
+
+  Bug Fixing..
+
+ Updated On 3/21/2014
+
+ Version 1.2.0
+
+ 1. Bug Fixing.
+ 2. Support for all languages in Excel import/export locations.
+ 3. Added addtional options in application settings.
+ 4. Customizable CSS style.
+ 5. Directly browse locations from "State/County/Province" in single country.
+ 6. Bring your favorite country to top.
+ 7. Load all locations while loading the page in search mode.
+ 8. Map API key edit option.
+ 9. Default location for initial map view.
+ 10. Added Map languages option. 
+ 11. Search locations by address, zip code, location name, city, country, state and email added in admin dashboard.
+ 12. Option for deleting mutiple locations.
+

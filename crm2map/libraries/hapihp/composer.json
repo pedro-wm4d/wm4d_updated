@@ -1,0 +1,5 @@
+{
+"require": {
+    "fungku/hubspot": "1.0.*"
+}
+}

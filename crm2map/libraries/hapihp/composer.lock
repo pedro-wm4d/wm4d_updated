@@ -1,0 +1,55 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "3399ef22a36db2c0439af1087034ce54",
+    "content-hash": "092f205490f143f5a6a00d84364830da",
+    "packages": [
+        {
+            "name": "fungku/hubspot",
+            "version": "v1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ryanwinchester/hubspot.git",
+                "reference": "89aa803ce028b4c380900e3e0111199e51eeedf9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ryanwinchester/hubspot/zipball/89aa803ce028b4c380900e3e0111199e51eeedf9",
+                "reference": "89aa803ce028b4c380900e3e0111199e51eeedf9",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Fungku\\HubSpot": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "fungku",
+                    "email": "fungku@gmail.com"
+                }
+            ],
+            "description": "HubSpot PHP API client (wrapper for haPiHP)",
+            "time": "2015-10-18 20:25:57"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}
