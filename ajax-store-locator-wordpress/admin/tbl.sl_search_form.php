@@ -372,37 +372,7 @@ a:active,a:focus,#hrHide:active, #hrHide:focus,.arrleft:active,.arrright:active,
    float:left;
    width:30px;
    }
-/*
-   ul.sl_SearchR{
-    width:98%;
-    margin-top: 8px;
-    padding:0px;
-}
 
-ul.sl_SearchR li{
-    list-style:none;
-    padding:5px;
-    border-bottom:1px #D2D2D2 solid;
-    cursor:pointer;
-    clear:both;
-	*clear:'';
-    float:left;
-	width:96%;
-	margin:0px;
-}
-
-ul.sl_SearchR li.odd
-{
-}
-ul.sl_SearchR li.even
-{
-}
-ul.sl_SearchR li:hover{
-}
- ul.sl_SearchR li.active{
-    background: #FFE8B2;
-}
-*/
 #sl_map_form {
 		-moz-border-radius: 6px;
 		-webkit-border-radius: 6px;
@@ -635,12 +605,14 @@ ul.sl_SearchR li:hover{
     <link rel='stylesheet' id='open-sans-css'  href='https://fonts.googleapis.com/css?family=Open+Sans%3A300italic%2C400italic%2C600italic%2C300%2C400%2C600&#038;subset=latin%2Clatin-ext&#038;ver=4.5.3' type='text/css' media='all' />
     <link rel='stylesheet' href='<?php echo $this->plugin_url().'/css/styles.css'; ?>' type='text/css' />
 
-        <script src="<?php echo $this->plugin_url(); ?>/spinner/src/loadingoverlay.min.js"></script>
+<script src="<?php echo $this->plugin_url(); ?>/spinner/src/loadingoverlay.min.js"></script>
 <?php /*        <script src="<?php echo $this->plugin_url(); ?>/spinner/src/loadingoverlay_progress.min.js"></script> */ ?>
 
 
-    <link rel="stylesheet" href="<?php echo $this->plugin_url(); ?>/multiselect/multiple-select.css" />
-    <script src="<?php echo $this->plugin_url(); ?>/multiselect/multiple-select.js"></script>
+<link rel="stylesheet" href="<?php echo $this->plugin_url(); ?>/multiselect/multiple-select.css" />
+<script src="<?php echo $this->plugin_url(); ?>/multiselect/multiple-select.js"></script>
+
+
 
 <script type="text/javascript">
 if (typeof  giz_Locator == "undefined") {
@@ -2511,25 +2483,14 @@ jQuery(document).ready(function($) {
 							infoWindow.close();
 							map.panTo(new google.maps.LatLng(lat, lan));
 	
-							/*
-							 jQuery('ul.sl_SearchR>li .lblSpan').each(function(index) {
-							 $(this).click();
-							 });
-							 /*						alert($(this).attr("id"));
-							 */
+							
 						});
 	                    $("#sloc_bottomBar").show();
 
 					} else {
 						$("#sloc_bottomBar").hide();
 					}
-/*
-                    if (jQuery.trim(lName).length > 0 && markers.length > 0) {
-                        var cLatt = parseFloat(markers[0]["lat"]);
-                        var cLngg = parseFloat(markers[0]["lng"]);
-                        map.panTo(new google.maps.LatLng(cLatt, cLngg));
-                    }
-*/
+
                     if (markers.length == 1) {
                         jQuery('#sl_msgBox').text(markers.length + " <?php _e('Store found', self::TEXT_DOMAIN); ?>.");
                     } else {
@@ -2648,11 +2609,7 @@ jQuery(document).ready(function($) {
 
                         var html_info = '<header class="mapres-header" ><h4 class = "mapres-title" > '+ name +'</h4><span class ="mapres-miles" > '+ radian + " " + RadType +'</span>'
                             +'</header><div class ="mapres-category mapres-c'+markers[i]["type"]+' round-corner">'+categories[markers[i]["type"]]+'</div><div class = "mapres-address" ><i class="mapres-sprite pin-icon" > </i> '+ address +'</div>';
-                        <?php /*
-                        var html_info ='<div class="sl_clear sl_info_Div"><div class="sl_pad2"><span style="font-weight:bold; font-size:12px;float:left;display:block;padding-left: 2px;margin-bottom: 2px; width:82%;">'+ name +'</span><span style="font-weight:bold; font-size:12px;  float:right;">'+ radian + " " + RadType +'</span></div><div class="clear"></div>'+ htmLogo +'<div class="lisAdd" style="width:'+ add_width +'">'+
-                                '<div class="sl_pad2"><label style="font-weight:bold"><?php _e( 'Address', self::TEXT_DOMAIN ); ?> : </label><span style="font-weight:normal">'+ address +'</span></div>'+ htmPhone + htmFax + htmEmail + htmWeb +
-                                '</div></div><div style="clear:both"><div class="fl">'+ directionhtm +'</div></div>';
-*/ ?>
+
                         var CSSclass = '';
                         if (i % 2 == 0) {
                             CSSclass = 'even';
@@ -2770,20 +2727,13 @@ jQuery(document).ready(function($) {
         if (typeof(activeZipcodes[feature.getProperty("title")]) != 'undefined' && activeZipcodes[feature.getProperty("title")].length > 1) {
             res['zIndex'] = '99';
             res['strokeColor'] = 'red';
-            /*
-
-             res['fillColor']='green';
-             res['fillOpacity']='0.7';
-             res['strokeOpacity']='0.5';
-             */
+            
         }
         return res;
     }
 
     function toggleHeatmap(marker) {
-/*		if (marker.getAnimation() != google.maps.Animation.BOUNCE) {
-			marker.setAnimation(google.maps.Animation.BOUNCE);
-*/	
+	
  	if (typeof(activeMarkers[marker["id"]]) == 'undefined' || activeMarkers[marker["id"]]== null) {						
 
             if (typeof(marker['heatmap']) != 'undefined' && marker['heatmap'] != null) {
@@ -2806,33 +2756,22 @@ jQuery(document).ready(function($) {
             ;
 
             delete(activeMarkers[marker["id"]]);
-/*            marker.setAnimation(null);*/
+
         }
         ;
-        /*
-         console.log('****************');
-         console.log(activeMarkers);
-         */
+       
         if (typeof(marker['heatmap_zipcodes']) != 'undefined' && marker['heatmap_zipcodes'] != null)
             var ft = null;
         activeZipcodes = [];
         for (var mid in activeMarkers) {
             if ($.isArray(activeMarkers[mid]['heatmap_zipcodes'])) {
-                /*						console.log(activeMarkers[mid]['heatmap_zipcodes']);
-                 */
-                for (var zci = 0; zci < activeMarkers[mid]['heatmap_zipcodes'].length; zci++) {
+               for (var zci = 0; zci < activeMarkers[mid]['heatmap_zipcodes'].length; zci++) {
                     /*							console.log('in');
                      */
                     ft = activeMarkers[mid]['heatmap'].getFeatureById(activeMarkers[mid]['heatmap_zipcodes'][zci]);
                     ft.setProperty('name', activeMarkers[mid]['name']);
                     if (typeof(activeZipcodes[activeMarkers[mid]['heatmap_zipcodes'][zci]]) != 'undefined') {
                         activeZipcodes[activeMarkers[mid]['heatmap_zipcodes'][zci]].push(ft);
-                        /*								console.log(marker['heatmap'].getFeatureById(activeMarkers[mid]['heatmap_zipcodes'][zci]));
-                         */
-                        /*
-                         marker['heatmap'].overrideStyle(marker['heatmap'].getFeatureById(activeMarkers[mid]['heatmap_zipcodes'][zci]), {'strokeColor':'red'});
-                         console.log(activeMarkers[mid]['heatmap_zipcodes'][zci]);
-                         */
                     } else {
                         activeZipcodes[activeMarkers[mid]['heatmap_zipcodes'][zci]] = Array(ft);
                     }
@@ -2862,26 +2801,6 @@ jQuery(document).ready(function($) {
     function bindInfoWindow(marker, map, infoWindow, html, id) {
         /*** Event From Marker : Set Active Class for Address And Pop up The Info Window In Map **/
         google.maps.event.addListener(marker, 'click', function () {
-            /*
-             if (marker['heatmap']!=null) {
-             marker['heatmap'].setMap(null);
-             marker['heatmap'].overrideStyle({
-             strokeColor: 'yellow',
-             'zIndex':99
-             });
-
-             }
-             */
-            /*			  var ctaLayer = new google.maps.KmlLayer({url: 'http://wm4dmap.com/be2.php?d='+Date.now(),map: map});
-             var ctaLayer = new google.maps.KmlLayer({url: 'http://wm4dmap.com/dev/wp-admin/admin-ajax.php?action=crm2map_getkml&c[]='+marker['adwords_id']+'&d='+Date.now(),map: map});
-             */
-            /*			  jQuery('ul.sl_SearchR>li.active').removeClass('active');*/
-            /*
-             jQuery('ul.sl_SearchR>li').each(function(index) {
-             jQuery('#ida_'+id).addClass('active');
-             jQuery('#ida_'+id).hasClass('active')?jQuery('ul.sl_SearchR>li.active').removeClass('active'):
-             });
-             */
             jQuery('#ida_' + id).hasClass('active') ? jQuery('#ida_' + id).removeClass('active') : jQuery('#ida_' + id).addClass('active');
 
             var count = 0;
@@ -2897,39 +2816,15 @@ jQuery(document).ready(function($) {
             $(".arrow-up").hide();
 
             toggleHeatmap(marker);
-            /*
-             console.log(activeZipcodes);
-
-
-
-             if (typeof(marker['heatmap']) != 'undefined' && marker['heatmap'] != null) {
-             if (marker['heatmap'].getMap() != null) marker['heatmap'].setMap(null);
-             else {
-             marker['heatmap'].setMap(map);
-             infoWindow.close();
-             }
-             };
-             */
+            
             return false;
         });
         /*** Event From List : Set Active And Pop up The Info Window In Map **/
-/*
-        google.maps.event.addDomListener(jQuery('ul.sl_SearchR>li'), 'click', function () {
-            alert('in');
-        });
-*/
+
         var addressObj = document.getElementById('idadiv_' + id);
         google.maps.event.addDomListener(addressObj, 'click', function () {
             jQuery('#ida_' + id).hasClass('active') ? jQuery('#ida_' + id).removeClass('active') : jQuery('#ida_' + id).addClass('active');
 
-            /*			  jQuery('ul.sl_SearchR>li.active').removeClass('active');
-             jQuery('ul.sl_SearchR>li').each(function(index) {
-             console.log(jQuery('#ida_'+id).hasClass('active'));
-             jQuery('#ida_'+id).addClass('active');
-             jQuery('#ida_'+id).hasClass('active')?jQuery('ul.sl_SearchR>li.active').removeClass('active'):jQuery('#ida_'+id).addClass('active');
-
-             });
-             */
             infoWindow.setContent(html);
             infoWindow.setOptions({height: 190});
             infoWindow.open(map, marker);
@@ -3635,19 +3530,7 @@ ajax: function (u, t, d, s, Rmsg) {
 <?php } ?>
 
 									<label class="lblForm" for="sloc_selCategory"><?php _e('Category', self::TEXT_DOMAIN); ?> :</label>
-<?php /*
-                                    <select id="sloc_selCategory" name="sloc_selCategory" multiple="multiple">
-                                        <option value="0" >All</option>
-                                            <?php
-                                                $sl_sql_str="SELECT DISTINCT C.`categoryid` , C.`category` FROM `$sl_tb_storecat` AS C INNER JOIN `$sl_tb_stores` AS S ON S.`type` = C.`categoryid` ORDER BY 1 ASC" ;
-                                                $sl_select_obj = $wpdb->get_results( $sl_sql_str );
-                                                foreach ($sl_select_obj as $sl_cate_row) {
-                                                    $catSelect = ($sl_cate_row->categoryid == 2) ? ' selected=selected' : '';
-                                                    echo "<option value='".$sl_cate_row->categoryid."' $catSelect>".$sl_cate_row->category."</option>";
-                                                }
-                                            ?>
-                                    </select>
-*/ ?>                                    
+                                   
 
 											<?php
 function show_tree($lst, $lv = 1)
@@ -3667,39 +3550,21 @@ function show_tree($lst, $lv = 1)
     $sl_sql_str = "SELECT DISTINCT C.`categoryid` , C.`category`, C.`parent` FROM `$sl_tb_storecat` AS C LEFT JOIN `$sl_tb_stores` AS S ON S.`type` = C.`categoryid` ORDER BY ord ASC";
     $sl_select_obj = $wpdb->get_results($sl_sql_str);
 
-//print_r($sl_select_obj);
     $catTree = [];
     foreach ($sl_select_obj as $sl_cate_row) {
-        //		print_r($sl_cate_row);
         if ($sl_cate_row->parent == 0) {
             $catTree[$sl_cate_row->categoryid] = $sl_cate_row;
         } else {
             $catTree[$sl_cate_row->parent]->children[$sl_cate_row->categoryid] = $sl_cate_row;
         }
     }
-
-//	echo "<pre>";print_r($catTree);echo "</pre>";
-
-     ?>
+?>
         <select id="sloc_selCategory" name="sloc_selCategory" multiple=multiple>
 <?php  show_tree($catTree); ?>
         </select>
 
 
-<?php /*
-        <select id="sloc_selCategory" name="sloc_selCategory" multiple=multiple>
-                                            <?php
-                                                $sl_sql_str="SELECT DISTINCT C.`categoryid` , C.`category`, c.`parent` FROM `$sl_tb_storecat` AS C INNER JOIN `$sl_tb_stores` AS S ON S.`type` = C.`categoryid` ORDER BY 1 ASC" ;
-                                                $sl_select_obj = $wpdb->get_results( $sl_sql_str );
-                                                foreach ($sl_select_obj as $sl_cate_row) {
-                                                    $catSelect = (in_array($sl_cate_row->categoryid,array(2,11))) ? ' selected=selected' : '';
-                                                    echo "<option value='".$sl_cate_row->categoryid."' $catSelect>".$sl_cate_row->category."</option>";
-//													echo "<optgroup label='asdasdas'><option value='".$sl_cate_row->categoryid."' $catSelect>".$sl_cate_row->category."</option></optgroup>";
-                                                }
-                                            ?>
-        </select>
-*/
- ?>
+ 
 								<input id="sloc_LoadAdwords" class="wd75c" name="sloc_LoadAdwords" type="checkbox" value="yes"/><label for="sloc_LoadAdwords">Show Adwords Data</label>
 
 <a id="sl_nearStore" class="sloc_button" href="javascript:void(0)"  style="margin-left:4px"><?php _e('Search', self::TEXT_DOMAIN); ?></a>                                    
@@ -3786,28 +3651,7 @@ function show_tree($lst, $lv = 1)
 
       </section>
 
-<?php /*
-            <div id="sloc_leftBar" style="width:300px;float:<?php echo $MapPosition; ?>;diplay:none">
-
-                    <?php if($SearchMode == "SM"): ?>
-                        <div id="sl_new_searchResult" class="sl_clear">
-                            <ul class="sl_SearchR">
-                            </ul>
-                        </div>
-                    <?php endif; ?>
-
-                    <div style="clear: both;">
-                    </div>
-
-
-                </div>
-            </div>
-*/ ?>
-<?php /*
-            <div style="float:<?php echo $MapPosition; ?>; width:13px;">
-                <a href="javascript:void(0);" alt="Hide" title="Hide" id="hrHide" class="arr<?php echo $MapPosition; ?>" >&nbsp;</a>
-            </div>
-*/ ?>           
+         
 			<div id="sl_map_form">
 				<form  method="post" action="#" id="sl_frmGetDirection" onsubmit="return callDirectionSub();">
 					<input type="hidden" id="sloc_hdfLat" name="sloc_hdfLat" />

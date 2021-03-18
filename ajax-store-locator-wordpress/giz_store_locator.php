@@ -59,7 +59,7 @@ class Gizmo_Store extends WP_Widget
             add_action('admin_menu', [$this, 'sl_admin_menu']);
             add_action('sl_create_post', [$this, 'sl_addedit_post']);
             add_action('wp_ajax_sl_dal_category', 'sl_dal_category_cbf');
-            add_action('wp_ajax_sl_dal_mapsettings', 'sl_dal_mapsettings_cbf');
+            add_action('wp_ajax_sl_dal_mapsettings', 'sl_dal_mapsettings_cbf'); //store plugin settings
             add_action('wp_ajax_sl_dal_storesave', 'sl_dal_storesave_cbf');
             add_action('wp_ajax_sl_dal_managelocation', 'sl_dal_managelocation_cbf');
             add_action('wp_ajax_sl_dal_locationimport', 'sl_dal_locationimport_cbf');
@@ -78,17 +78,6 @@ class Gizmo_Store extends WP_Widget
             add_action('init', [$this, 'sl_load_translation']);
             add_action('wp_enqueue_scripts', [$this, 'sl_load_ui_style_script']);
         }
-
-        /*parent::__construct(false,
-            // Base ID of your widget
-            'Gizmo_Store',
-
-            // Widget name will appear in UI
-            __('Gizmo Store Widget', 'wpb_widget_domain'),
-
-            // Widget description
-            array( 'description' => __( 'Widget for load result', 'wpb_widget_domain' ) )
-        );	*/
     }
 
     // Creating widget front-end
@@ -102,27 +91,6 @@ class Gizmo_Store extends WP_Widget
             echo $args['before_title'].$title.$args['after_title'];
         }
 
-        // This is where you run the code and display the output
-        /*echo "<pre>";
-            print_r($instance);
-        echo "</pre>";*/
-        /*
-            [title] => Testing Title
-            [no_result_disp] => 5
-            [ddl_option] => Most
-            [opt_iscustid] => on
-            [opt_name] =>
-            [opt_address] => on
-            [opt_city] => on
-            [opt_state] => on
-            [opt_country] => on
-            [opt_postalcode] => on
-            [opt_phone] => on
-            [opt_fax] => on
-            [opt_email] => on
-            [opt_website] => on
-            [opt_logo] =
-            */
         echo __('Hello, World!', 'wpb_widget_domain');
         echo $args['after_widget'];
     }
@@ -221,18 +189,6 @@ class Gizmo_Store extends WP_Widget
 		<?php
     }
 
-    /**
-     * Initializes the widget's classname, description, and JavaScripts.
-     */
-    /*public function get_instance() {
-        // Get an instance of the
-        if( null == self::$instance ) {
-            self::$instance = new self;
-        } // end if
-        return self::$instance;
-
-    } // end get_instance*/
-
     /******** Load Language File **********/
     public function sloc_page_template($page_template)
     {
@@ -313,13 +269,14 @@ class Gizmo_Store extends WP_Widget
     public function sl_plugin_activation()
     {
         global $wpdb;
+        error_log('********************** This goes to error log directly #2');
         update_option('storelocator_installed', 1);
         require_once ABSPATH.'wp-admin/includes/upgrade.php';
         include SL_PLUGIN_PATH.'class/class.store-locator-main.php';
         $plugins = get_option('active_plugins');
         $sl_db_initialize = new sl_plugin_db_settings();
         /************ Create Database Tables using mysql dump ************/
-        $sl_db_create = $sl_db_initialize->apphp_db_install(DB_NAME, SL_PLUGIN_PATH.'db_dump.sql', $wpdb->prefix.$this->sl_table_prefix);
+        $sl_db_create = $sl_db_initialize->apphp_db_install(SL_PLUGIN_PATH.'db_dump.sql', $wpdb->prefix.$this->sl_table_prefix);
 
         /************ Alter application settings table column ***********/
         $table_app = $this->sl_return_dbTable('APS');

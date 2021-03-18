@@ -522,11 +522,13 @@ CREATE TABLE IF NOT EXISTS `storecategory` (
   `createddate` datetime NOT NULL,
   `updateddate` datetime NOT NULL,
   `isdefault` tinyint(1) NOT NULL DEFAULT '0',
+  `parent` int(11) NULL DEFAULT '0',
+  `ord` int(11) NULL DEFAULT '0',
   PRIMARY KEY (`categoryid`)
 )   DEFAULT CHARSET=utf8 AUTO_INCREMENT=2 ;
 
-INSERT IGNORE INTO `storecategory` (`categoryid`, `markerid`, `category`, `categoryicon`, `createddate`, `updateddate`, `isdefault`) VALUES
-(1, 1, 'Default', NULL, '2012-12-27 14:14:00', '2012-12-27 14:31:41', 1);
+INSERT IGNORE INTO `storecategory` (`categoryid`, `markerid`, `category`, `categoryicon`, `createddate`, `updateddate`, `isdefault`, `parent`, `ord`) VALUES
+(1, 1, 'Default', NULL, '2012-12-27 14:14:00', '2012-12-27 14:31:41', 1, 0, 0);
 
 CREATE TABLE IF NOT EXISTS `storelogos` (
   `logoid` int(11) NOT NULL AUTO_INCREMENT,
@@ -565,5 +567,12 @@ CREATE TABLE IF NOT EXISTS `stores` (
   `statuscode` varchar(10) DEFAULT NULL,
   `status` bit(1) NOT NULL DEFAULT b'1',
   `defaultloc` bit(1) NOT NULL DEFAULT b'0',
+  `iscustid`	int(11) NULL,
+  `f_cid`	int(11) NULL,
+  `f_first_name`	varchar(60),
+  `f_last_name`	varchar(60),
+  `f_company`	varchar(60),
+  `marketing_office` varchar(250),
+  `adwords_id` varchar(20) NULL,
   PRIMARY KEY (`id`)
 )  DEFAULT CHARSET=utf8  AUTO_INCREMENT=1 ;

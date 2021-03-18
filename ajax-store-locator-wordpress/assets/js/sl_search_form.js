@@ -1,645 +1,3 @@
-<?php
-	/*********** Loading Map Settings *************/
-		$sl_qry_location = "";
-		$sl_qry_location_geo = "";
-		if(isset($_REQUEST["Location"])){
-			$sl_qry_location = $_REQUEST["Location"];
-		}
-		if(isset($_REQUEST["StoreLocation"])){
-			$sl_qry_location_geo = $_REQUEST["StoreLocation"];
-		}
-		add_action('wp_ajax_sl_dal_searchlocation', 'sl_dal_searchlocation_cbf');
-		add_action('wp_ajax_nopriv_sl_dal_searchlocation'     , 'sl_dal_searchlocation_cbf');
-		$sl_tb_mapsetting 		= $this->sl_return_dbTable('MAS');
-		$sl_tb_appsetting 		= $this->sl_return_dbTable('APS');
-		$sl_tb_stores	 		= $this->sl_return_dbTable('SRO');
-		$sl_tb_mapradius 		= $this->sl_return_dbTable('MAR');
-		$sl_tb_markerimg 		= $this->sl_return_dbTable('MRI');
-		$sl_tb_label 			= $this->sl_return_dbTable('LBL');
-		$sl_tb_pluginset 		= $this->sl_return_dbTable('PLS');
-		$sl_tb_storecat 		= $this->sl_return_dbTable('STC');
-		$sl_select_obj 			= $wpdb->get_results( "SELECT * FROM `$sl_tb_mapsetting` LIMIT 0 , 1" );
-		$ZoomControl 			= 'false';
-		$PanControl	 			= 'false';
-		$streetControl			= 'false';
-		$RadKmType 	 			= 'false';
-		$RadMiType	 			= 'false';
-		$RadiusType				= '';
-		$MapPosition    		= 'right';
-		$Categoryvi 			= "";
-		$LoadLoc	 			= "";
-		$SearchMode 			= '';
-		$LogoVisible 			= '';
-		$ZoomLevel				= 10;
-		$Radius					= '';
-		$ControlPosition		= 'TOP_RIGHT';
-		$MapType				= 'ROADMAP';
-		$Latti = $Lngg 			= 0.0;
-		$api_key_script 		= "";
-		$applicationCss			= "";
-		$isSingleCountry		= 0;
-		$preferCountry			= "";
-
-		foreach ($sl_select_obj as $sl_mapset_row) {
-			$ZoomLevel			= $sl_mapset_row->zoomlevel;
-			$RadiusType			= $sl_mapset_row->radiustype;
-			$Radius				= $sl_mapset_row->radius;
-			$ControlPosition	= $sl_mapset_row->controlposition;
-			$MapType			= $sl_mapset_row->maptype;
-			$ZoomControl 		= ($sl_mapset_row->zoomcontrol == 1) ? 'true' : 'false';
-			$PanControl 		= ($sl_mapset_row->pancontrol == 1) ?  'true' : 'false';
-			$streetControl 		= ($sl_mapset_row->streetviewcontrol == 1) ?  'true' : 'false';
-/*
-			$RadKmType			= ($sl_mapset_row->radiustype == "KM" || $sl_mapset_row->radiustype == "Both") ? 'checked="true"' : '';
-			$RadMiType			= ($sl_mapset_row->radiustype == "Miles") ? 'checked="true"' : '';
-
-*/
-			$RadMiType			= ($sl_mapset_row->radiustype == "Miles" || $sl_mapset_row->radiustype == "Both") ? 'checked="true"' : '';
-			$RadKmType			= ($sl_mapset_row->radiustype == "KM") ? 'checked="true"' : '';
-			$Latti 				= $sl_mapset_row->lat ;
-			$Lngg 				= $sl_mapset_row->lng;
-			$api_key_script	 	= (strlen($sl_mapset_row->map_api_key) > 0) ? "&key=". $sl_mapset_row->map_api_key  : "";
-		}
-
-		$Radius=100;
-
-
-		 /************* Loding Application Settings *************/
-		$sl_select_obj = $wpdb->get_results( "SELECT * FROM `$sl_tb_appsetting` LIMIT 0 , 1" );
-		foreach ($sl_select_obj as $sl_appset_row) {
-			$MapPosition 		= ($sl_appset_row->mapposition == "MR") ? "left" : "right";
-			$SearchMode  		= $sl_appset_row->searchmode;
-			$Categoryvi			= $sl_appset_row->category;
-			$LoadLoc	 		= $sl_appset_row->load_location;
-			$LogoVisible 		= $sl_appset_row->logo_visible;
-			$applicationCss		= trim($sl_appset_row->locator_css);
-			$isSingleCountry	= $sl_appset_row->enable_single_country;
-			$preferCountry		= $sl_appset_row->preferred_country;
-		}
-
-		$sql_qry = "SELECT DISTINCT `Country` FROM `$sl_tb_stores` ORDER BY `Country` ASC";
-		$sl_select_obj = $wpdb->get_results( $sql_qry );
-		$sql_Nrow	= $wpdb->num_rows;
-
-		$url = '';
-		$n_url = '';
-		if(isset($_SERVER['HTTP_REFERER'])){
-			$url = $_SERVER['HTTP_REFERER'];
-			$n_url = $url;
-		}
-		if( $url ) {
-		 $url = strrev($url);
-		 $last_slash = strlen($url) - strpos($url,'/') - 1;
-		 $url = strrev($url);
-		 if( $last_slash ) {
-		   $file_name = substr($url,$last_slash);
-		$referurl = trim(str_replace($file_name, '', $url));
-		$path_relative1 = $referurl;
-		 }
-		}
-		else{
-			$https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-			$path_relative1 = ($https ? 'https://' : 'http://').$_SERVER["SERVER_NAME"].($https && $_SERVER['SERVER_PORT'] == 443 ||
-				$_SERVER['SERVER_PORT'] == 80 ? '' : ':'.$_SERVER['SERVER_PORT']).trim(str_replace('/index.php', '', $_SERVER['SCRIPT_NAME']));
-		}
-		$ref_url = substr($url,0,strrpos($url,'?'));
-		if($ref_url){
-			$main_path = str_replace('', '', $ref_url);
-		}
-		else{
-			$main_path = str_replace('', '', $url);
-		}
-	function full_url(){
-		$s = empty($_SERVER["HTTPS"]) ? '' : ($_SERVER["HTTPS"] == "on") ? "s" : "";
-		$sp = strtolower($_SERVER["SERVER_PROTOCOL"]);
-		$protocol = substr($sp, 0, strpos($sp, "/")) . $s;
-		$port = ($_SERVER["SERVER_PORT"] == "80") ? "" : (":".$_SERVER["SERVER_PORT"]);
-		return $protocol . "://" . $_SERVER['SERVER_NAME'] . $port . $_SERVER['REQUEST_URI'];
-	}
-	$full_link = full_url();
-	
-
-?>
-<style type="text/css">
-<?php if(strlen($applicationCss) > 10){
-	echo str_replace("#plugin_url", $this->plugin_url(), $applicationCss);
-}else{ ?>
-
-	@media only screen and (max-width: 320px) and (min-width: 300px) {
-		#sloc_leftBar{
-			font-size:12px !important;
-		}
-		.storelist li, a.state li a.maanelam,.state li a.maanelamm, .sloc_browse li a.naadu,.browse li a.naaduu, .city li a.nagaram,.city li a.nagaramm{
-			font-size:10px !important;
-		}
-		#sloc_leftBar, #sloc_Search-area{
-			width:320px;
-/*			padding-left: 20px;
-*/
-		}
-	}
-
-	@media only screen and (max-width: 400px) and (min-width: 320px) {
-		#sloc_leftBar{
-			font-size:12px !important;
-		}
-		.storelist li, a.state li a.maanelam,.state li a.maanelamm, .sloc_browse li a.naadu,.browse li a.naaduu, .city li a.nagaram,.city li a.nagaramm{
-			font-size:10px !important;
-		}
-		#sloc_leftBar, #sloc_Search-area{
-			width:320px;
-/*			padding-left: 20px;*/
-		}
-	}
-	@media only screen and (max-width: 1025px) and (min-width: 400px) {
-		#sloc_leftBar, #sloc_Search-area{
-			width:330px;
-/*			padding-left: 20px;*/
-		}
-	}
-	@media only screen and (max-width: 1200px) and (min-width: 1025px) {
-		#sloc_leftBar, #sloc_Search-area{
-			width:330px;
-/*			padding-left: 20px;*/
-		}
-	}
-	@media only screen and (max-width: 1400px) and (min-width: 1200px) {
-		#sloc_leftBar, #sloc_Search-area{
-			width:330px;
-/*			padding-left: 20px;*/
-		}
-	}
-	@media only screen and (max-width: 1500px) and (min-width: 1400px) {
-		#sloc_leftBar, #sloc_Search-area{
-			width:330px;
-/*			padding-left: 20px;*/
-		}
-	}
-
-	.giz_storeLocator{
-		display:table;
-		clear:both;
-		width:100%;
-		margin:0px auto;
-/*		padding-left:20px;
-*/		position:static !important;
-	}
-	#sloc_leftBar label{
-		display:inline !important;
-	}
-	#sl_new_searchResult ul li {
-		list-style: none !important;
-		margin:0px !important;
-		clear:both;
-	}
-
-	#sl_new_searchResult::-webkit-scrollbar
-{
-	width: 12px;
-	background-color: #F5F5F5;
-}
-
-	.fl{
-		float:left;
-	}
-	.fr{
-		float:right;
-	}
-	.wd75{
-		width: 75%;
-	}
-	.wd20{
-		width: 20%;
-	}
-	.wd23{
-		width: 23%;
-	}
-	.sl_error{
-    padding: 3px 4px 1px;
-    border:solid 1px #FBD3C6;
-    background:#FDE4E1 !important;
-    color:#CB4721;
-    font-size:12px;
-    font-weight:bold;
-    text-align:center;
-    display:none;
-	width: 100%;
-}
-.sloc_button{
-	font-size:100%;margin:0;line-height:1em;cursor:pointer;position:relative;font-family:inherit;overflow:none;padding:6px 10px;text-decoration:none;font-weight:bold;-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;left:auto;text-shadow:0 1px 0 #fff;color:#5e5e5e;text-shadow:0 1px 0 rgba(255,255,255,0.8);border:1px solid #c8bfc6;background:#f7f6f7;background:-webkit-gradient(linear,left top,left bottom,from(#f7f6f7),to(#e0dadf));background:-webkit-linear-gradient(#f7f6f7,#e0dadf);background:-moz-linear-gradient(center top,#f7f6f7 0,#e0dadf 100%);background:-moz-gradient(center top,#f7f6f7 0,#e0dadf 100%);white-space:nowrap;display:inline-block;-webkit-box-shadow:inset 0 -1px 0 rgba(0,0,0,0.075),inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.1);-moz-box-shadow:inset 0 -1px 0 rgba(0,0,0,0.075),inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.1);box-shadow:inset 0 -1px 0 rgba(0,0,0,0.075),inset 0 1px 0 rgba(255,255,255,0.3),0 1px 2px rgba(0,0,0,0.1);
-}
-.sl_msg_box{
-	background:transparent;
-    color: #CB4721;
-    display: inline-block;
-    font-size: 12px;
-    font-weight: bold;
-    padding: 2px 4px;
-    text-align: center;
-    width: 100%;
-	height:19px;
-}
-.sl_error_cls{
-	border:solid 1px #FBD3C6;
-}
-.sl_success{
-    padding: 3px 4px 1px;
-    border:solid 1px #C0F0B9;
-    background:#D5FFC6 !important;
-    color:#48A41C;
-    font-size:12px;
-    font-weight:bold;
-    text-align:center;
-    display:none;
-	width: 100%;
-}
-.sl_clear {clear: both;}
-.sl_pad5{
-	padding:5px;
-}
-.sl_pad2{
-	padding:2px;
-}
-#sl_front_map_canvas img, .gobackO img{
-	-moz-box-shadow: none !important;
-	-webkit-box-shadow: none !important;
-	box-shadow: none !important;
-	-ms-filter: none !important;
-	filter: none !important;
-	max-width: none !important;
-}
-.sl_logo {
-    float:left;
-    width:75px;
-}
-.sl_logo img
-{
-    background-color:#fff;
-    padding:2px;
-    border:1px solid #ccc;
-    width:64px;
-    -moz-border-radius:4px;
-    -webkit-border-radius:4px;
-    margin-left:2px;
-}
-.lisAdd{
-    float:left;
-    padding-left:2px;
-    width:80%;
-	font-size:12px;
-}
-.arrright{
-	background: url('<?php echo $this->plugin_url(); ?>/images/icon/showhide.png') -16px 0 no-repeat;
-	display:block;
-	outline:none;
-	text-decoration: none;
-}
-.arrleft{
-	background: url('<?php echo $this->plugin_url(); ?>/images/icon/showhide.png') no-repeat;
-	display:block;
-	outline:none;
-	text-decoration: none;
-}
-.arrup{
-	background: url('<?php echo $this->plugin_url(); ?>/images/icon/showhide.png') -5px -26px no-repeat;
-	display:block;
-	outline:none;
-	text-decoration: none;
-}
-.arrdown{
-	background: url('<?php echo $this->plugin_url(); ?>/images/icon/showhide.png') -5px -43px no-repeat;
-	display:block;
-	outline:none;
-	text-decoration: none;
-}
-.arrleftL{
-	background: url('<?php echo $this->plugin_url(); ?>/images/icon/showhide.png') -19px 0 no-repeat;
-	display:block;
-	outline:none;
-	text-decoration: none;
-}
-.arrrightR{
-	background: url('<?php echo $this->plugin_url(); ?>/images/icon/showhide.png') 0 0 no-repeat;
-	display:block;
-	outline:none;
-	text-decoration: none;
-}
-.arrleft:hover,.arrright:hover, .arrrightR:hover, .arrleftL:hover{
-	text-decoration: none !important;
-}
-a:active,a:focus,#hrHide:active, #hrHide:focus,.arrleft:active,.arrright:active, .arrrightR:active, .arrleftL:active,.arrleft:focus,.arrright:focus, .arrrightR:focus, .arrleftL:focus{
-	outline : none;
-}
-.tootltipshow {
-	display:block;
-	background: url('<?php echo $this->plugin_url(); ?>/images/icon/share.png') no-repeat !important;
-	height: 16px;
-	width: 55px;
-}
-.tooltip{
-   position:absolute;
-   padding: 10px 13px;
-   z-index: 2;
-
-   color: #303030;
-   background-color: #f5f5b5;
-   border: 1px solid #DECA7E;
-
-   font-family: sans-serif;
-   font-size: 12px;
-   line-height: 18px;
-   text-align: center;
-   visibility:visible;
-   left: 140px;
-   opacity:1 !important;
-    /* IE 8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)" !important;
-
-  /* IE 5-7 */
-  filter: alpha(opacity=100) !important;
-
-  /* Netscape */
-  -moz-opacity: 1 !important;
-
-  /* Safari 1.x */
-  -khtml-opacity: 1 !important;
-
-}
-
-   .tooltip h3{
-      margin: 0 0 5px;
-      text-align: left;
-   }
-   .tooltip .social_plugin div{
-   float:left;
-   width:30px;
-   }
-/*
-   ul.sl_SearchR{
-    width:98%;
-    margin-top: 8px;
-    padding:0px;
-}
-
-ul.sl_SearchR li{
-    list-style:none;
-    padding:5px;
-    border-bottom:1px #D2D2D2 solid;
-    cursor:pointer;
-    clear:both;
-	*clear:'';
-    float:left;
-	width:96%;
-	margin:0px;
-}
-
-ul.sl_SearchR li.odd
-{
-}
-ul.sl_SearchR li.even
-{
-}
-ul.sl_SearchR li:hover{
-}
- ul.sl_SearchR li.active{
-    background: #FFE8B2;
-}
-*/
-#sl_map_form {
-		-moz-border-radius: 6px;
-		-webkit-border-radius: 6px;
-		-khtml-border-radius: 6px;
-		border-radius: 6px;
-        background: #eef2f7;
-        border: 1px solid #536376;
-        -webkit-box-shadow: rgba(0,0,0,.6) 0px 2px 12px;
-        -moz-box-shadow:  rgba(0,0,0,.6) 0px 2px 12px;
-		box-shadow: rgba(0,0,0,.6) 0px 2px 12px;
-		-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#000000')";/* For IE 8 */
-		filter: progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='#000000');/* For IE 5.5 - 7 */
-        padding: 14px 22px;
-        position: relative;
-        display: none;
-		text-align:left;
-    }
-    #sl_map_form #sl_map_form_form {
-        margin-top: 0px;
-    }
-    #sl_map_form label {
-        display: block;
-        margin-bottom: 10px;
-        color: #536376;
-        font-size: .9em;
-    }
-
-    #sl_map_form label input {
-        display: block;
-        width: 95%;
-        height: 30px;
-        background-position: -201px 0;
-        padding: 3px 8px;
-        font-size: 1.2em;
-        line-height: 31px;
-    }
-	.lblSpan{
-		font-weight: bold;
-		color: #fff;
-		margin-left: 2px;
-	}
- .panel{
-	position: absolute;
-	top: 90px;
-	left:15px;
-	height:400px;
-	overflow:scroll;
-	width:400px;
-	background:#DFDFDF;
-	display:none;
-}
-.DHead{
-    border:1px solid #DFDFDF;
-    height: 35px;
-    width: 97.2%;
-}
-.sl_GetDirec{
-	display:inline-block;
-}
-.dirhead{
-	color: #000;
-    margin: 0 !important;
-	font-size: 14px !important;
-    padding: 6px 5px;
-    width: 80%;
-}
-/****************** For Browse View *********************/
-.sloc_browse{
-	list-style:none;
-	margin:0px !important;
-	padding: 0;
-    width: 97.5%;
-}
-.sloc_browse li{
-	text-transform: uppercase;
-	color:#fff;
-	font-weight:bold;
-	margin:0px;
-}
-.sloc_browse li span.cu_span{
-	background:url('<?php echo $this->plugin_url(); ?>/images/icon/arrow_sprite.png') -10px 6px no-repeat;
-	width:15px;
-	height:15px;
-	display:block;
-	margin-left: -6px;
-    padding: 0;
-	float:left;
-}
-.sloc_browse li a.naadu,.browse li a.naaduu{
-	/*border:1px #DFDFDF solid;*/
-	border-left: 1px solid #DFDFDF;
-    border-right: 1px solid #DFDFDF;
-    border-top: 1px solid #DFDFDF;
-	padding: 5px;
-	color:#000;
-	display: block;
-	font-size:12px;
-}
-.sloc_browse li:last-child a.naadu,.browse li:last-child a.naaduu, .sloc_browse li a.naadu.selectb, .browse li a.naaduu.selectb{
-	border-bottom: 1px solid #DFDFDF;
-}
-.sloc_browse li a:hover{
-	color:#C1DAD7;
-	text-decoration:none;
-}
-.sloc_browse li.selected a.selectb{
-	color:#1CAC31;
-}
-.sloc_browse li.selected span.cu_span{
-	background:url('<?php echo $this->plugin_url(); ?>/images/icon/arrow_sprite.png') -10px -10px no-repeat;
-	width:17px;
-	height:15px;
-	display:block;
-	margin-left: -4px;
-	float:left;
-}
-.state{
-	list-style:none;
-	margin:0 0 0 5px !important;
-	padding: 0;
-	width:98.5%;
-}
-.state li{
-	text-transform: uppercase;
-	color:#000;
-	font-weight:bold;
-    width: 99.1%;
-	margin:0px;
-}
-.state li span.st_span{
-	background:url('<?php echo $this->plugin_url(); ?>/images/icon/arrow_sprite.png') 6px 5px no-repeat;
-	width:17px;
-	height:15px;
-	display:block;
-	margin-left: -6px;
-	float:left;
-}
-
-.state li.selected span.st_span{
-	background:url('<?php echo $this->plugin_url(); ?>/images/icon/arrow_sprite.png') 4px -10px no-repeat;
-	width:17px;
-	height:15px;
-	display:block;
-	margin-left: -4px;
-	float:left;
-}
-
-.state li a.maanelam,.state li a.maanelamm{
-	border-bottom:1px #666666 solid;
-	padding: 5px;
-	color:#000;
-	display: block;
-	font-size:12px;
-}
-.state li a:hover{
-	color:#0000FF !important;
-	text-decoration:none;
-}
-.state li.selected a.selects{
-	color:green;
-}
-.city{
-	list-style:none;
-	margin:0 0 0 3px !important;
-	padding: 0;
-}
-.city li{
-	text-transform: uppercase;
-	color:#000;
-	font-weight:bold;
-    width: 99.5%;
-	margin:0px;
-}
-.city li a.nagaram,.city li a.nagaramm{
-	border-bottom:1px #DFDFDF solid;
-	background:none;
-	padding:5px;
-	color:#000;
-	display: block;
-	font-size:12px;
-}
-.city li a:hover{
-	color:#0000FF !important;
-	text-decoration:none;
-}
-.city li.selected a.selectc{
-	color:red;
-}
-.storelist{
-	list-style:none;
-	margin-top:13px;
-	padding: 0;
-}
-.storelist li {
-  text-transform: none !important;
-  padding: 3px;
-  border-bottom:1px #D2D2D2 solid;
-  cursor:pointer;
-  clear:both;
-  float:left;
-  font-weight:normal;
-   width: 98.7%;
-   margin:0;
-}
- .storelist li a{
-	border:none !important;
-	border:none !important;
-	padding:0px !important;
-	display: inline;
-    color: #527e19 !important;
-	text-decoration: none;
-	font-size:12px;
-}
-
-#close_x {
-	width: 24px; height: 23px;
-	overflow: hidden; line-height: 1000px;
-	display: block;
-	position: absolute; top: 5px; right: 5px;
-	background-position: -387px -102px;
-}
-.sprited {
-	background: url('<?php echo $this->plugin_url(); ?>/images/download_sprite.png') no-repeat;
-	line-height: 1000px;
-	overflow: hidden;
-	display: block;
-}
-<?php } ?>
-</style>
-    <link rel='stylesheet' id='open-sans-css'  href='https://fonts.googleapis.com/css?family=Open+Sans%3A300italic%2C400italic%2C600italic%2C300%2C400%2C600&#038;subset=latin%2Clatin-ext&#038;ver=4.5.3' type='text/css' media='all' />
-    <link rel='stylesheet' href='<? echo $this->plugin_url().'/css/styles.css'; ?>' type='text/css' />
-
-        <script src="<?php echo $this->plugin_url(); ?>/spinner/src/loadingoverlay.min.js"></script>
-<? /*        <script src="<?php echo $this->plugin_url(); ?>/spinner/src/loadingoverlay_progress.min.js"></script> */ ?>
-<script type="text/javascript">
 if (typeof  giz_Locator == "undefined") {
 	var  giz_Locator = {};
 }
@@ -648,9 +6,9 @@ var contentScroll;
 var searchMode 		= "<?php echo $SearchMode; ?>";
 var DLatt 			= <?php echo $Latti; ?>;
 var DLng			= <?php echo $Lngg; ?>;
-var plugin_path 	= "<?php echo $this->plugin_url() .'/'; ?>";
+var plugin_path 	= "<?php echo $this->plugin_url().'/'; ?>";
 var admin_ajx 		= "<?php echo admin_url('admin-ajax.php'); ?>";
-var site_url 		= "<?php echo site_url(). '/'; ?>";
+var site_url 		= "<?php echo site_url().'/'; ?>";
 var url_query 		= "<?php echo $full_link; ?>";
 main_path 			= "<?php echo $full_link; ?>";
 var naviPos 		= "<?php echo $MapPosition; ?>";
@@ -660,7 +18,7 @@ var LogoVisible		= "<?php echo $LogoVisible; ?>";
 var gMap;
 google.maps.visualRefresh = true;
 var $ = jQuery.noConflict();
-jQuery(document).ready(function() {
+jQuery(document).ready(function($) {
     var head = $('head')[0];
     var insertBefore = head.insertBefore;
     head.insertBefore = function (newElement, referenceElement) {
@@ -681,7 +39,17 @@ jQuery(document).ready(function() {
         }
         insertBefore.call(head, newElement, referenceElement);
     };
+<?php
 
+    $sl_sql_str = "SELECT DISTINCT C.`categoryid` , C.`category` FROM `$sl_tb_storecat` AS C INNER JOIN `$sl_tb_stores` AS S ON S.`type` = C.`categoryid` ORDER BY 1 ASC";
+    $sl_select_obj = $GLOBALS['wpdb']->get_results($sl_sql_str);
+    $cats = [];
+    foreach ($sl_select_obj as $sl_cate_row) {
+        $cats[] = "'$sl_cate_row->categoryid':'$sl_cate_row->category'";
+    }
+
+?>
+	var categories={<?php echo implode(',', $cats); ?>};
     var activeMarkers = [];
     var activeZipcodes = [];
     $("#sloc_bottomBar").hide();
@@ -713,40 +81,45 @@ jQuery(document).ready(function() {
                 }
             }
         } else {
-            <?php if($SearchMode == "BM"){ if($sql_Nrow > 0){?>
+            <?php if ($SearchMode == 'BM') {
+    if ($sql_Nrow > 0) {?>
             LoadBrowse("All", '');
             <?php } else { ?>
             LoadWOQ();
             <?php } ?>
-            <?php } else { ?>
+            <?php
+} else { ?>
             LoadWOQ();
             <?php } ?>
         }
     }
     else {
-        <?php if($SearchMode == "BM"){ if($sql_Nrow > 0){?>
+        <?php if ($SearchMode == 'BM') {
+        if ($sql_Nrow > 0) {?>
         LoadBrowse("All", '');
         <?php } else { ?>
         LoadWOQ();
         <?php } ?>
-        <?php } else {
-        if($SearchMode == "SM" && $LoadLoc == 1){
-        ?>
+        <?php
+    } else {
+        if ($SearchMode == 'SM' && $LoadLoc == 1) {
+            ?>
         LoadAllLocation();
-        <?php }else{ ?>
+        <?php
+        } else { ?>
         LoadWOQ();
         <?php
         }
-        } ?>
+    } ?>
 
     }
 
-    <?php if($SearchMode == "BM"): ?>
+    <?php if ($SearchMode == 'BM'): ?>
 
     <?php endif; ?>
 
     /**** Get Latitude and Longitude from Search Event ***/
-    jQuery('#sl_nearStore').bind('click', function () {
+    jQuery('#sl_nearStore').bind('click', function () {  
         if (jQuery('#sl_nearStore').attr('disabled') === 'disabled')
             return;
         jQuery('#sl_new_searchResult').empty();
@@ -759,16 +132,16 @@ jQuery(document).ready(function() {
 
         var address = jQuery('#sloc_tbPlace').val();
         var lCountry = jQuery('#sloc_tbCountry').val();
-
+ 
         var radian = jQuery('#sloc_selRadius').val();
-        var CatId = 0;
+        var CatId = [];
         if (jQuery('#sloc_selCategory').length > 0) {
-            CatId = jQuery('#sloc_selCategory').val();
+            CatId = jQuery('#sloc_selCategory').multipleSelect("getSelects");			
             jQuery('#sloc_hdfOCatId').val(CatId);
         }
         else {
-            CatId = 0;
-            jQuery('#sloc_hdfOCatId').val(0);
+            CatId = [];
+            jQuery('#sloc_hdfOCatId').val(CatId);
         }
         if (jQuery.trim(lCountry).length <= 0 && jQuery.trim(address).length <= 0 && jQuery.trim(lName).length <= 0) {
             jQuery('#sloc_tbPlace').addClass('sl_error_cls');
@@ -782,7 +155,7 @@ jQuery(document).ready(function() {
             jQuery('#sl_msgBox').text("<?php _e('Select radius', self::TEXT_DOMAIN); ?>.");
             jQuery('#sl_msgBox').removeClass('sl_success').addClass('sl_error').fadeOut(300).fadeIn(300);
         }
-        else {
+        else { 
             if (jQuery.trim(address).length <= 0) {
                 if ((jQuery.trim(lCountry).length <= 0) && (jQuery.trim(lName).length > 0)) lCountry = 'USA';
                 address = lCountry;
@@ -913,10 +286,11 @@ jQuery(document).ready(function() {
             if (jQuery('#sloc_hdfOLat').val().length > 0) {
                 SearchStore(jQuery('#sloc_hdfOLat').val(), jQuery('#sloc_hdfOLng').val(), radian, RadType, catId);
             } else {
-                <?php if($SearchMode == "SM" && $LoadLoc == 1){
-                ?>
+                <?php if ($SearchMode == 'SM' && $LoadLoc == 1) {
+        ?>
                 LoadAllLocation();
-                <?php }else{ ?>
+                <?php
+    } else { ?>
                 SearchStore(jQuery(this).attr('lat'), jQuery(this).attr('lng'), 0, "KM", catId);
                 <?php } ?>
             }
@@ -965,10 +339,10 @@ jQuery(document).ready(function() {
 
 
     /*************** load country list for browse mode **************/
-    function BindCountryList(returnVal) {
+    function BindCountryList(returnVal) { 
         if (returnVal != null) {
             if (returnVal.length > 0) {
-                <?php if($isSingleCountry == 0) { ?>
+                <?php if ($isSingleCountry == 0) { ?>
                 var content = "<ul class='sloc_browse'></ul>";
                 jQuery('#sl_new_searchResult').append(content);
                 for (var i = 0; i < returnVal.length; i++) {
@@ -978,8 +352,8 @@ jQuery(document).ready(function() {
                 setTimeout(function () {
                     jQuery('.Loader').fadeOut('slow').remove();
                 }, 200);
-                <?php }else {
-                ?>
+                <?php } else {
+        ?>
                 var content = "<ul class='state'></ul>";
                 jQuery('#sl_new_searchResult').append(content);
                 for (var i = 0; i < returnVal.length; i++) {
@@ -991,7 +365,7 @@ jQuery(document).ready(function() {
                 }, 200);
 
                 <?php
-                } ?>
+    } ?>
             }
             else {
                 jQuery('#sl_new_searchResult').append('<div class="sl_error sl_clear" style="width:95%; display:block;"><?php _e('No stores found', self::TEXT_DOMAIN); ?>.</div>');
@@ -1231,7 +605,7 @@ jQuery(document).ready(function() {
                 else {
 
                     for (var i = 0; i < markers.length; i++) {
-                        if (i == 0) console.log(markers[i]);
+/*                        if (i == 0) console.log(markers[i]);*/
                         var storeId = markers[i]["id"];
                         var name = markers[i]["name"];
                         var address = markers[i]["FullAddress"];
@@ -1297,14 +671,14 @@ jQuery(document).ready(function() {
                             Total_str = Total_str + ',<?php _e('Website', self::TEXT_DOMAIN); ?> : ' + web;
                         }
 
-                        <? include_once("extra.php");add_js_extra();?>
+                        <?php include_once 'extra.php'; add_js_extra(); ?>
                         if (logo.length > 0) {
                             htmLogo = '<div class="sl_logo" style="clear:both";><img src=' + plugin_path + logo + ' alt=' + name + ' title=' + name + ' /></div>';
                         }
                         else {
                             htmLogo = '<div class="sl_logo"><img src="' + plugin_path + 'Logo/logo_02.png" alt=' + name + ' title=' + name + ' /></div>';
                         }
-                        <?php if($LogoVisible != 1){ ?>
+                        <?php if ($LogoVisible != 1) { ?>
                         htmLogo = '';
                         add_width = '99%';
                         <?php } ?>
@@ -1345,7 +719,7 @@ jQuery(document).ready(function() {
                          '<div class="sl_pad5"><label style="font-weight:bold"><?php _e('Address', self::TEXT_DOMAIN); ?> : </label><span style="font-weight:normal">'+ address +'</span></div>'+ phone_fax + htmEmail + htmWeb +
                          '</div></div><div style="clear:both"><div class="fl">'+ directionhtm +'</div></div>';
                          */
-                        var html1 = '<header class = "mapres-header" ><h4 class="mapres-title" > '+ name +'</h4><span class="mapres-miles" ></span></header>'
+                        var html1 = '<header class = "mapres-header" ><h4 class="mapres-title" > '+ name +'</h4><span class="mapres-miles" ></span></header><div class ="mapres-category mapres-c'+markers[i]["type"]+' round-corner">'+categories[markers[i]["type"]]+'</div>'
                             +'<div class="mapres-address" ><i class="mapres-sprite pin-icon" ></i> '+ address + '</div><div class="mapres-subinfo" > ' + directionhtm + '</div>';
 
                         bindInfoWindowN(marker, map, infoWindow, html1, i, false);
@@ -1540,7 +914,7 @@ jQuery(document).ready(function() {
                             Total_str = Total_str + ',<?php _e('Website', self::TEXT_DOMAIN); ?> : ' + web;
                         }
 
-                        <? include_once("extra.php");add_js_extra();?>
+                        <?php include_once 'extra.php'; add_js_extra(); ?>
 
                         if (logo.length > 0) {
                             htmLogo = '<div class="sl_logo" style="clear:both";><img src=' + plugin_path + logo + ' alt=' + name + ' title=' + name + ' /></div>';
@@ -1548,7 +922,7 @@ jQuery(document).ready(function() {
                         else {
                             htmLogo = '<div class="sl_logo"><img src="' + plugin_path + 'Logo/logo_02.png" alt=' + name + ' title=' + name + ' /></div>';
                         }
-                        <?php if($LogoVisible != 1){ ?>
+                        <?php if ($LogoVisible != 1) { ?>
                         htmLogo = '';
                         add_width = '99%';
                         <?php } ?>
@@ -1826,14 +1200,14 @@ jQuery(document).ready(function() {
                             htmWeb = '<div class="sl_pad5 sl_clear"><label style="font-weight:bold; display: block; float: left; margin: 0; width: 53px;"><?php _e('Website', self::TEXT_DOMAIN); ?></label><span><b>:</b> <a href=\"' + web + '\" target="_blank">' + web + '</a></span></div>';
                             Total_str = Total_str + ',<?php _e('Website', self::TEXT_DOMAIN); ?> : ' + web;
                         }
-                        <? include_once("extra.php");add_js_extra();?>
+                        <?php include_once 'extra.php'; add_js_extra(); ?>
                         if (logo.length > 0) {
                             htmLogo = '<div class="sl_logo sl_clear"><img src=' + plugin_path + logo + ' alt=' + name + ' title=' + name + ' /></div>';
                         }
                         else {
                             htmLogo = '<div class="sl_logo" style="clear:both;"><img src="' + plugin_path + 'logo_02.png" alt=' + name + ' title=' + name + ' /></div>';
                         }
-                        <?php if($LogoVisible != 1){ ?>
+                        <?php if ($LogoVisible != 1) { ?>
                         htmLogo = '';
                         add_width = '99%';
                         <?php } ?>
@@ -2103,7 +1477,7 @@ jQuery(document).ready(function() {
                             htmWeb = '<div class="sl_pad2 sl_clear"><label style="font-weight:bold;display: block; float: left; margin: 0; width: 53px;"><?php _e('Website', self::TEXT_DOMAIN); ?></label><span><b>:</b> <a href=\"' + web + '\" target="_blank">' + web + '</a></span></div>';
                             Total_str = Total_str + ',<?php _e('Website', self::TEXT_DOMAIN); ?> : ' + web;
                         }
-                        <? include_once("extra.php");add_js_extra();?>
+                        <?php include_once 'extra.php'; add_js_extra(); ?>
                         if (logo.length > 0) {
                             htmLogo = '<div class="sl_logo" style="clear:both";><img src=' + plugin_path + logo + ' alt=' + name + ' title=' + name + ' /></div>';
                         }
@@ -2111,7 +1485,7 @@ jQuery(document).ready(function() {
                             htmLogo = '<div class="sl_logo"><img src="' + plugin_path + 'Logo/logo_02.png" alt=' + name + ' title=' + name + ' /></div>';
                         }
 
-                        <?php if($LogoVisible != 1){ ?>
+                        <?php if ($LogoVisible != 1) { ?>
                         htmLogo = '';
                         add_width = '99%';
                         <?php } ?>
@@ -2440,15 +1814,17 @@ jQuery(document).ready(function() {
         var bounds = new google.maps.LatLngBounds();
         var arrayData = [];
         var infoWindow = new google.maps.InfoWindow;
-        <? include_once("overlay.php");?>
-        <? js_get_vars();?>
+        <?php include_once 'overlay.php'; ?>
+        <?php js_get_vars($cats); ?>
         var lName = jQuery('#sloc_tbName').val();
         var lCountry = jQuery('#sloc_tbCountry').val();
         var lPlace = jQuery('#sloc_tbPlace').val();
+        var loadAdwords = jQuery('#sloc_LoadAdwords').is(":checked");
+		
         var sl_frontsearch_dal = {
             action: 'sl_dal_searchlocation',
             funMethod: 'SearchStore',
-            Location: lat + "~" + lan + "~" + rad + "~" + CateId + "~" + lCountry + "~" + lPlace + "~" + lName,
+            Location: lat + "~" + lan + "~" + rad + "~" + CateId.join(",") + "~" + lCountry + "~" + lPlace + "~" + lName + "~" + loadAdwords,
             StoreLocation: ''
         };
         giz_Locator.home.ajaxSer(admin_ajx, "POST", sl_frontsearch_dal, function (markers) {
@@ -2465,43 +1841,38 @@ jQuery(document).ready(function() {
                 else {
                     jQuery('.sl_SearchR li').remove();
                     jQuery('.sl_SearchR').empty();
+					
+					if (loadAdwords) {
+						jQuery('#select_none, #select_all, #select_adwords').bind('click', function () {
+							switch ($(this).attr("id")) {
+								case "select_all":
+									jQuery('ul.sl_SearchR>li:not(.active) .mapres-title').each(function (index) {
+										$(this).click();
+									});
+									break;
+								case "select_adwords":
+									jQuery('ul.sl_SearchR>li.active').each(function (index) {
+										$(this).click();
+									});
+									jQuery('ul.sl_SearchR>li:has(.option-procedures-wrapper)').each(function (index) {
+										$(this).click();
+									});
+									break;
+								default:
+									jQuery('ul.sl_SearchR>li.active .mapres-title').each(function (index) {
+										$(this).click();
+									});
+							}
+							infoWindow.close();
+							map.panTo(new google.maps.LatLng(lat, lan));
+	
+							
+						});
+	                    $("#sloc_bottomBar").show();
 
-                    jQuery('#select_none, #select_all, #select_adwords').bind('click', function () {
-                        switch ($(this).attr("id")) {
-                            case "select_all":
-                                jQuery('ul.sl_SearchR>li:not(.active) .mapres-title').each(function (index) {
-                                    $(this).click();
-                                });
-                                break;
-                            case "select_adwords":
-                                jQuery('ul.sl_SearchR>li.active').each(function (index) {
-                                    $(this).click();
-                                });
-                                jQuery('ul.sl_SearchR>li:has(.option-procedures-wrapper)').each(function (index) {
-                                    $(this).click();
-                                });
-                                break;
-                            default:
-                                jQuery('ul.sl_SearchR>li.active .mapres-title').each(function (index) {
-                                    $(this).click();
-                                });
-                        }
-                        /*
-                         jQuery('ul.sl_SearchR>li .lblSpan').each(function(index) {
-                         $(this).click();
-                         });
-                         /*						alert($(this).attr("id"));
-                         */
-                    });
-
-                    $("#sloc_bottomBar").show();
-
-                    if (jQuery.trim(lName).length > 0 && markers.length > 0) {
-                        var cLatt = parseFloat(markers[0]["lat"]);
-                        var cLngg = parseFloat(markers[0]["lng"]);
-                        map.panTo(new google.maps.LatLng(cLatt, cLngg));
-                        /*						alert(markers[0]["lat"]+'test'+markers[0]["lng"]);*/
-                    }
+					} else {
+						$("#sloc_bottomBar").hide();
+					}
 
                     if (markers.length == 1) {
                         jQuery('#sl_msgBox').text(markers.length + " <?php _e('Store found', self::TEXT_DOMAIN); ?>.");
@@ -2539,7 +1910,7 @@ jQuery(document).ready(function() {
                                 iconImg = "http://www.google.com/intl/en_us/mapfiles/ms/micons/red-dot.png";
                                 markImage = new google.maps.MarkerImage(iconImg);
                             }
-                        }
+                        };
                         var marker = new google.maps.Marker({
                             map: map,
                             position: point,
@@ -2568,14 +1939,14 @@ jQuery(document).ready(function() {
 
                          if(web.length     > 0){htmWeb    = '<div class="sl_pad2 sl_clear"><label style="font-weight:bold; display: block; float: left; margin: 0; width: 53px;"><?php _e('Website', self::TEXT_DOMAIN); ?></label><span><b>:</b> <a href=\"'+ web +'\" target="_blank">'+web+'</a></span></div>'; Total_str = Total_str + ',<?php _e('Website', self::TEXT_DOMAIN); ?> : ' + web;}
                          */
-                        <? include_once("extra.php");add_js_extra();?>
+                        <?php include_once 'extra.php'; add_js_extra(); ?>
                         if (logo.length > 0) {
                             htmLogo = '<div class="sl_logo sl_clear"><img src=' + plugin_path + logo + ' alt=' + name + ' title=' + name + ' /></div>';
                         }
                         else {
                             htmLogo = '<div class="sl_logo" style="clear:both;"><img src="' + plugin_path + 'logo_02.png" alt=' + name + ' title=' + name + ' /></div>';
                         }
-                        <?php if($LogoVisible != 1){ ?>
+                        <?php if ($LogoVisible != 1) { ?>
                         htmLogo = '';
                         add_width = '99%';
                         <?php } ?>
@@ -2612,20 +1983,16 @@ jQuery(document).ready(function() {
                         var directionhtm = '<a href=\"javascript:void(0)\" rel="' + address + '" lat="' + Latt + '" lng="' + Lngg + '" class="sl_GetDirection fl sl_pad2 sl_gall" ><img src="' + plugin_path + 'images/icon/direction.png" alt="<?php _e('Get Directions', self::TEXT_DOMAIN); ?>" /></a>';
 
                         var Social = '<div id="social' + i + '" class="social_plugin">' + fb + pinit + tweet + '</div>';
-                        <? js_get_more_info();?>
-                        <?
+                        <?php js_get_more_info(); ?>
+                        <?php
                         //$procedures='<div class="sl_pad2 sl_clear"><label style="font-weight:bold; display: block; float: left; margin: 0;">\'Procedure Name</label><span><b>, Cost: $232323</b> <a href="url">url</a></span></div>';
                         ?>
 
-                        var html = '<span id="idadiv_' + i + '"><header class="mapres-header"> <h4 class="mapres-title">' + name + '</h4><span class="mapres-miles">' + radian + " " + RadType + '</span></header> <div class="mapres-address"><strong>Address :</strong>' + address + '</div></span>';
+                        var html = '<span id="idadiv_' + i + '"><header class="mapres-header"><h4 class="mapres-title">' + name + '</h4><span class="mapres-miles">' + radian + " " + RadType + '</span></header><div class ="mapres-category round-corner mapres-c'+markers[i]["type"]+'">'+categories[markers[i]["type"]]+'</div>  <div class="mapres-address"><strong>Address :</strong>' + address + '</div></span>';
 
                         var html_info = '<header class="mapres-header" ><h4 class = "mapres-title" > '+ name +'</h4><span class ="mapres-miles" > '+ radian + " " + RadType +'</span>'
-                            +'</header><div class = "mapres-address" ><i class="mapres-sprite pin-icon" > </i> '+ address +'</div>';
-                        <? /*
-						var html_info ='<div class="sl_clear sl_info_Div"><div class="sl_pad2"><span style="font-weight:bold; font-size:12px;float:left;display:block;padding-left: 2px;margin-bottom: 2px; width:82%;">'+ name +'</span><span style="font-weight:bold; font-size:12px;  float:right;">'+ radian + " " + RadType +'</span></div><div class="clear"></div>'+ htmLogo +'<div class="lisAdd" style="width:'+ add_width +'">'+
-								'<div class="sl_pad2"><label style="font-weight:bold"><?php _e( 'Address', self::TEXT_DOMAIN ); ?> : </label><span style="font-weight:normal">'+ address +'</span></div>'+ htmPhone + htmFax + htmEmail + htmWeb +
-								'</div></div><div style="clear:both"><div class="fl">'+ directionhtm +'</div></div>';
-*/ ?>
+                            +'</header><div class ="mapres-category mapres-c'+markers[i]["type"]+' round-corner">'+categories[markers[i]["type"]]+'</div><div class = "mapres-address" ><i class="mapres-sprite pin-icon" > </i> '+ address +'</div>';
+
                         var CSSclass = '';
                         if (i % 2 == 0) {
                             CSSclass = 'even';
@@ -2633,7 +2000,7 @@ jQuery(document).ready(function() {
                         else if (i % 2 == 1) {
                             CSSclass = 'odd';
                         }
-                        <? js_add2box();?>
+                        <?php js_add2box(); ?>
                         jQuery('<li  id =ida_' + i + ' class="mapres-item ' + CSSclass + '"></li>').html(html).appendTo('.sl_SearchR');
                         bindInfoWindow(marker, map, infoWindow, html_info, i);
                         htmPhone = '';
@@ -2672,13 +2039,14 @@ jQuery(document).ready(function() {
                      */
 
                 }
+			if (loadAdwords) {				
                 $(".option-procedures").hide();
                 $(".arrow-up").hide();
                 $(".option-heading").on("click", function () {
                     $(this).next(".option-procedures").slideToggle(500);
                     $(this).find(".arrow-up, .arrow-down").toggle();
                 });
-
+			};
                 if (noResult == false) {
                     jQuery("#sl_new_searchResult").niceScroll({horizrailenabled: false});
                     map.fitBounds(bounds);
@@ -2723,6 +2091,8 @@ jQuery(document).ready(function() {
             jQuery('#sl_new_searchResult').css({'height': '100vh'});
 
             jQuery('#sl_nearStore').removeAttr('disabled');
+ 	    map.panTo(new google.maps.LatLng(lat, lan));						
+
         }, 3000);
     }
 
@@ -2740,19 +2110,14 @@ jQuery(document).ready(function() {
         if (typeof(activeZipcodes[feature.getProperty("title")]) != 'undefined' && activeZipcodes[feature.getProperty("title")].length > 1) {
             res['zIndex'] = '99';
             res['strokeColor'] = 'red';
-            /*
-
-             res['fillColor']='green';
-             res['fillOpacity']='0.7';
-             res['strokeOpacity']='0.5';
-             */
+            
         }
         return res;
     }
 
     function toggleHeatmap(marker) {
-        if (marker.getAnimation() != google.maps.Animation.BOUNCE) {
-            marker.setAnimation(google.maps.Animation.BOUNCE);
+	
+ 	if (typeof(activeMarkers[marker["id"]]) == 'undefined' || activeMarkers[marker["id"]]== null) {						
 
             if (typeof(marker['heatmap']) != 'undefined' && marker['heatmap'] != null) {
                 marker['heatmap'].setMap(marker.getMap());
@@ -2774,33 +2139,22 @@ jQuery(document).ready(function() {
             ;
 
             delete(activeMarkers[marker["id"]]);
-            marker.setAnimation(null);
+
         }
         ;
-        /*
-         console.log('****************');
-         console.log(activeMarkers);
-         */
+       
         if (typeof(marker['heatmap_zipcodes']) != 'undefined' && marker['heatmap_zipcodes'] != null)
             var ft = null;
         activeZipcodes = [];
         for (var mid in activeMarkers) {
             if ($.isArray(activeMarkers[mid]['heatmap_zipcodes'])) {
-                /*						console.log(activeMarkers[mid]['heatmap_zipcodes']);
-                 */
-                for (var zci = 0; zci < activeMarkers[mid]['heatmap_zipcodes'].length; zci++) {
+               for (var zci = 0; zci < activeMarkers[mid]['heatmap_zipcodes'].length; zci++) {
                     /*							console.log('in');
                      */
                     ft = activeMarkers[mid]['heatmap'].getFeatureById(activeMarkers[mid]['heatmap_zipcodes'][zci]);
                     ft.setProperty('name', activeMarkers[mid]['name']);
                     if (typeof(activeZipcodes[activeMarkers[mid]['heatmap_zipcodes'][zci]]) != 'undefined') {
                         activeZipcodes[activeMarkers[mid]['heatmap_zipcodes'][zci]].push(ft);
-                        /*								console.log(marker['heatmap'].getFeatureById(activeMarkers[mid]['heatmap_zipcodes'][zci]));
-                         */
-                        /*
-                         marker['heatmap'].overrideStyle(marker['heatmap'].getFeatureById(activeMarkers[mid]['heatmap_zipcodes'][zci]), {'strokeColor':'red'});
-                         console.log(activeMarkers[mid]['heatmap_zipcodes'][zci]);
-                         */
                     } else {
                         activeZipcodes[activeMarkers[mid]['heatmap_zipcodes'][zci]] = Array(ft);
                     }
@@ -2830,26 +2184,6 @@ jQuery(document).ready(function() {
     function bindInfoWindow(marker, map, infoWindow, html, id) {
         /*** Event From Marker : Set Active Class for Address And Pop up The Info Window In Map **/
         google.maps.event.addListener(marker, 'click', function () {
-            /*
-             if (marker['heatmap']!=null) {
-             marker['heatmap'].setMap(null);
-             marker['heatmap'].overrideStyle({
-             strokeColor: 'yellow',
-             'zIndex':99
-             });
-
-             }
-             */
-            /*			  var ctaLayer = new google.maps.KmlLayer({url: 'http://wm4dmap.com/be2.php?d='+Date.now(),map: map});
-             var ctaLayer = new google.maps.KmlLayer({url: 'http://wm4dmap.com/dev/wp-admin/admin-ajax.php?action=crm2map_getkml&c[]='+marker['adwords_id']+'&d='+Date.now(),map: map});
-             */
-            /*			  jQuery('ul.sl_SearchR>li.active').removeClass('active');*/
-            /*
-             jQuery('ul.sl_SearchR>li').each(function(index) {
-             jQuery('#ida_'+id).addClass('active');
-             jQuery('#ida_'+id).hasClass('active')?jQuery('ul.sl_SearchR>li.active').removeClass('active'):
-             });
-             */
             jQuery('#ida_' + id).hasClass('active') ? jQuery('#ida_' + id).removeClass('active') : jQuery('#ida_' + id).addClass('active');
 
             var count = 0;
@@ -2865,39 +2199,15 @@ jQuery(document).ready(function() {
             $(".arrow-up").hide();
 
             toggleHeatmap(marker);
-            /*
-             console.log(activeZipcodes);
-
-
-
-             if (typeof(marker['heatmap']) != 'undefined' && marker['heatmap'] != null) {
-             if (marker['heatmap'].getMap() != null) marker['heatmap'].setMap(null);
-             else {
-             marker['heatmap'].setMap(map);
-             infoWindow.close();
-             }
-             };
-             */
+            
             return false;
         });
         /*** Event From List : Set Active And Pop up The Info Window In Map **/
-
-        google.maps.event.addDomListener(jQuery('ul.sl_SearchR>li'), 'click', function () {
-            alert('in');
-        });
 
         var addressObj = document.getElementById('idadiv_' + id);
         google.maps.event.addDomListener(addressObj, 'click', function () {
             jQuery('#ida_' + id).hasClass('active') ? jQuery('#ida_' + id).removeClass('active') : jQuery('#ida_' + id).addClass('active');
 
-            /*			  jQuery('ul.sl_SearchR>li.active').removeClass('active');
-             jQuery('ul.sl_SearchR>li').each(function(index) {
-             console.log(jQuery('#ida_'+id).hasClass('active'));
-             jQuery('#ida_'+id).addClass('active');
-             jQuery('#ida_'+id).hasClass('active')?jQuery('ul.sl_SearchR>li.active').removeClass('active'):jQuery('#ida_'+id).addClass('active');
-
-             });
-             */
             infoWindow.setContent(html);
             infoWindow.setOptions({height: 190});
             infoWindow.open(map, marker);
@@ -3290,7 +2600,7 @@ function callDirectionSub(){
 		var result_res = false;
 		if(jQuery('#fromdir').val().length <= 0){
 				jQuery('#fromdir').focus();
-				jQuery('#sl_err_msg').text("<?php _e( 'Enter the from address', self::TEXT_DOMAIN ); ?>..");
+				jQuery('#sl_err_msg').text("<?php _e('Enter the from address', self::TEXT_DOMAIN); ?>..");
 				jQuery('#sl_err_msg').removeClass('sl_error').addClass('sl_error').fadeOut(300).fadeIn(300);
 				jQuery('#GetDirec').removeClass('close');
 		}
@@ -3371,17 +2681,17 @@ function callDirectionSub(){
 			jQuery('#sl_msgBox').removeClass('sl_success');
 			jQuery('#sl_msgBox').text('');
 			RadType = (jQuery('input:radio[name=sloc_radius]:checked').val()) ? jQuery('input:radio[name=sloc_radius]:checked').val() : "KM";
-			cont_html ="<div class='DHead sl_clear'><h2 class='dirhead fl'><?php _e( 'Directions', self::TEXT_DOMAIN ); ?></h2>"+
-			"<div class='fr'><a href=\"javascript:void(0)\" class='gobackO' rel='"+ RadType +"' rad='"+ jQuery('#sloc_selRadius').val() +"' lat='"+jQuery('#sloc_hdfLat').val()+"' lng='"+jQuery('#sloc_hdfLng').val()+"' ><img alt ='<?php _e( 'Back', self::TEXT_DOMAIN ); ?>' src='"+ plugin_path +"images/icon/go_back.png' style='margin-top: -2px;' /></a></div>"+
+			cont_html ="<div class='DHead sl_clear'><h2 class='dirhead fl'><?php _e('Directions', self::TEXT_DOMAIN); ?></h2>"+
+			"<div class='fr'><a href=\"javascript:void(0)\" class='gobackO' rel='"+ RadType +"' rad='"+ jQuery('#sloc_selRadius').val() +"' lat='"+jQuery('#sloc_hdfLat').val()+"' lng='"+jQuery('#sloc_hdfLng').val()+"' ><img alt ='<?php _e('Back', self::TEXT_DOMAIN); ?>' src='"+ plugin_path +"images/icon/go_back.png' style='margin-top: -2px;' /></a></div>"+
 			"</div><div class='sl_clear'></div>";
-			tolTip = '<?php _e( 'Back to search', self::TEXT_DOMAIN ); ?>';
+			tolTip = '<?php _e('Back to search', self::TEXT_DOMAIN); ?>';
 			height_reduce = 24;
 		}
 		else if(searchMode == 'BM'){
-			cont_html ="<div class='DHead sl_clear'><h2 class='dirhead fl'><?php _e( 'Directions', self::TEXT_DOMAIN ); ?></h2>"+
-			"<div class='fr'><a href=\"javascript:void(0)\" class='gobackO'><img alt ='<?php _e( 'Back', self::TEXT_DOMAIN ); ?>' src='"+ plugin_path +"images/icon/go_back.png' style='margin-top: -2px;' /></a></div>"+
+			cont_html ="<div class='DHead sl_clear'><h2 class='dirhead fl'><?php _e('Directions', self::TEXT_DOMAIN); ?></h2>"+
+			"<div class='fr'><a href=\"javascript:void(0)\" class='gobackO'><img alt ='<?php _e('Back', self::TEXT_DOMAIN); ?>' src='"+ plugin_path +"images/icon/go_back.png' style='margin-top: -2px;' /></a></div>"+
 			"</div><div class='sl_clear'></div>";
-			tolTip = '<?php _e( 'Back to browse', self::TEXT_DOMAIN ); ?>';
+			tolTip = '<?php _e('Back to browse', self::TEXT_DOMAIN); ?>';
 			jQuery('.sloc_catDrop').hide();
 			height_reduce = 30;
 		}
@@ -3421,17 +2731,17 @@ function callDirectionSub(){
 			},1500);
 		   }
 		   else if ( status == google.maps.DirectionsStatus.NOT_FOUND){
-				jQuery('#sl_err_msg').text("<?php _e( 'Address not found. Please try again', self::TEXT_DOMAIN ); ?>.");
+				jQuery('#sl_err_msg').text("<?php _e('Address not found. Please try again', self::TEXT_DOMAIN); ?>.");
 				jQuery('#sl_err_msg').removeClass('sl_error').addClass('sl_error').fadeOut(300).fadeIn(300);
 				jQuery('#sl_GetDirec').removeClass('close');
 		   }
 		   else if ( status == google.maps.DirectionsStatus.ZERO_RESULTS){
-				jQuery('#sl_err_msg').text("<?php _e( 'No directions found. Please try again', self::TEXT_DOMAIN ); ?>.");
+				jQuery('#sl_err_msg').text("<?php _e('No directions found. Please try again', self::TEXT_DOMAIN); ?>.");
 				jQuery('#sl_err_msg').removeClass('sl_error').addClass('sl_error').fadeOut(300).fadeIn(300);
 				jQuery('#sl_GetDirec').removeClass('close');
 		   }
 		   else if ( status == google.maps.DirectionsStatus.INVALID_REQUEST){
-				jQuery('#sl_err_msg').text("<?php _e( 'Invalid entry. Please try again', self::TEXT_DOMAIN ); ?>.");
+				jQuery('#sl_err_msg').text("<?php _e('Invalid entry. Please try again', self::TEXT_DOMAIN); ?>.");
 				jQuery('#sl_err_msg').removeClass('sl_error').addClass('sl_error').fadeOut(300).fadeIn(300);
 				jQuery('#sl_GetDirec').removeClass('close');
 		   }
@@ -3513,22 +2823,24 @@ ajax: function (u, t, d, s, Rmsg) {
 			beforeSend: function (x) {
 				if(x && x.overrideMimeType) {
 					x.overrideMimeType("application/j-son;charset=UTF-8");
-				};
+				}
 
-				var customElement   = $("<div>", {
-					id      : "countdown",
-					css     : {
-						"font-size" : "50px"
-					},
-					text    : 'Loading Adwords data - Please wait',
-				});
-				$("#sloc_rightContent").LoadingOverlay("show", {custom  : customElement});
+                let loadAdwords = $('#sloc_LoadAdwords').is(":checked");
+                let waitText = loadAdwords ? 'Loading Adwords data - Please wait' : 'Please wait';
 
-/*				$("#sloc_rightContent").LoadingOverlay("show");*/
+                let customElement   = $("<div>", {
+                    id      : "countdown",
+                    css     : {
+                        "font-size" : "50px"
+                    },
+                    text    : waitText,
+                });
+
+                $("#sloc_rightContent").LoadingOverlay("show", {custom  : customElement});
 			},
 			success: function (msg,status,shr) {
 
-                console.log('msg.length: ' + msg.length);
+/*                console.log('msg.length: ' + msg.length);*/
                 var sloc_tbNameVal = jQuery('#sloc_tbName').val();
                 var sloc_tbCountryVal = jQuery('#sloc_tbCountry').val();
                 var sloc_tbPlaceVal = jQuery('#sloc_tbPlace').val();
@@ -3542,6 +2854,11 @@ ajax: function (u, t, d, s, Rmsg) {
 
 				$("#sloc_rightContent").LoadingOverlay("hide", true);
 
+                setTimeout(function(){
+                    jQuery('#select_all').trigger('click');
+                }, 2000);
+
+
 				if (typeof s === 'function'){
 					s(msg);
 				}else{
@@ -3554,317 +2871,3 @@ ajax: function (u, t, d, s, Rmsg) {
 		});
 	}
 }
-
-</script>
-
-
-	<!-- Left Side Panel -->
-    
-
-			<!-- Right Side Panel -->
-			<div id="sloc_rightContent" style="float:left">
-				<!-- Google Map -->
-    <span id="sloc_topBar">
-					<form action="#" method="post" id="sloc_frmSearch" onsubmit="return callOnsubmit();" >
-						<div class="sl_field2" style="display:inline-block">
-								<input id="sloc_tbName" class="wd75c" name="sloc_tbName" type="text" style="width:100px" placeholder="Name"/> 
-								<input id="sloc_tbCountry" class="wd75c" name="sloc_tbCountry" type="text" style="width:100px" placeholder="Country"/> 
-
-						</div>
-
-
-						<div class="sl_field2" style="display:inline-block">
-								<input id="sloc_tbPlace" class="wd75" name="sloc_tbPlace" type="text" style="width:200px"  placeholder="Zipcode / Address"/>
-								<label class="lblForm" for="sloc_selRadius"><?php _e( 'Radius', self::TEXT_DOMAIN ); ?> :</label>
-								<select id="sloc_selRadius" name="sloc_selRadius">
-									<option value="" >Select</option>
-										<?php
-//											$Radius=100;
-											$sl_sql_str="SELECT radius FROM `$sl_tb_mapradius` ORDER BY radius" ;
-											$sl_select_obj = $wpdb->get_results( $sl_sql_str );
-											foreach ($sl_select_obj as $sl_radius_row) {
-												$radSelect = ($sl_radius_row->radius == $Radius) ? ' selected=selected' : '';
-												echo "<option value=".$sl_radius_row->radius." $radSelect>".$sl_radius_row->radius."</option>";
-											}
-										?>
-								</select>
-<?php if($RadiusType == "KM" || $RadiusType == "Both") { ?>
-								<input name="sloc_radius" id="sloc_rdKm" type="radio" value="KM" <?php echo $RadKmType; ?> /><label>&nbsp;<?php _e( 'Km', self::TEXT_DOMAIN ); ?></label>
-<?php } ?>
-<?php if($RadiusType == "Miles" || $RadiusType == "Both") { ?>
-								<input name="sloc_radius" id="sloc_rdMiles" type="radio" value="Miles" <?php echo $RadMiType; ?> /><label>&nbsp;<?php _e( 'Miles', self::TEXT_DOMAIN ); ?></label>
-<?php } ?>
-
-									<label class="lblForm" for="sloc_selCategory"><?php _e( 'Category', self::TEXT_DOMAIN ); ?> :</label>
-									<select id="sloc_selCategory" name="sloc_selCategory">
-										<option value="0" >All</option>
-											<?php
-												$sl_sql_str="SELECT DISTINCT C.`categoryid` , C.`category` FROM `$sl_tb_storecat` AS C INNER JOIN `$sl_tb_stores` AS S ON S.`type` = C.`categoryid` ORDER BY C.`category` ASC" ;
-												$sl_select_obj = $wpdb->get_results( $sl_sql_str );
-												foreach ($sl_select_obj as $sl_cate_row) {
-													$catSelect = ($sl_cate_row->categoryid == 2) ? ' selected=selected' : '';
-													echo "<option value='".$sl_cate_row->categoryid."' $catSelect>".$sl_cate_row->category."</option>";
-												}
-											?>
-									</select>
-<a id="sl_nearStore" class="sloc_button" href="javascript:void(0)"  style="margin-left:4px"><?php _e( 'Search', self::TEXT_DOMAIN ); ?></a>                                    
-
-						</div>
-
-						<?php if($Categoryvi == 1 && false):?>
-							<div class="sl_field sl_clear sl_catDrop" style="padding-top:5px; height:30px">
-								<div class="fl wd23">
- </div>
-								<div style="float:left">
-								</div>
-							</div>
-						<?php endif; ?>
-						<div id="sl_msgBox" class="sl_msg_box fl"></div>
-<!--
-						<div class="sl_field sl_clear" style="margin-top:10px; height:30px;">
-
-						</div>
--->
-					</form>
-    
-    </span>            
-                
-                
-				<div id="sl_front_map_canvas" style="position: relative;height: 100%;">
-				<div id="directions"></div>
-				</div>
-    <span id="sloc_bottomBar">
-					<form action="#" method="post" id="sloc_frmSearch" onsubmit="return callOnsubmit();" >
-						<div class="sl_field2" style="display:inline-block">
-
-								<label><input name="res_selection" id="select_all" type="radio" value="select_all"/>&nbsp;Select All</label>
-
-								<label><input name="res_selection" id="select_adwords" type="radio" value="select_adwords"/>&nbsp;Select with Adwords Data</label>
-								
-								<label><input name="res_selection" id="select_none" type="radio" value="select_none"/>&nbsp;Clear All</label>
-
-						</div>
-
-					</form>
-    
-    </span>            
-                
-				<!-- Google Map -->
-			</div>
-     <section class="map-sidebar" id="sloc_leftBar2" style="display: none;">
-        <div class="mapresults-title"><h3 class="mapresults-title_content">Search Results</h3></div>
-
-        <div class="mapresults-list-wrapper sl_clear" id="sl_new_searchResult">
-          <ul class="mapresults-list sl_SearchR">
-<? /*
-            <li class="mapres-item even">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-                <div class="colorBox" style="background-color: #9999ff"></div>
-              </div>
-              <div class="option-procedures-wrapper">
-                <div class="option-heading">
-                  <div class="arrow-up" style="display: none;"><span class="option-heading-btn"><i class="mapres-sprite plus-icon"></i> more info</span></div>
-                  <div class="arrow-down" style="display: block;"><span class="option-heading-btn"><i class="mapres-sprite minus-icon"></i> more info</span></div></div>
-                <div class="option-procedures" style="display: block;">
-                  <div class="sl_pad2"><label>Crowns,</label><span> Cost: $190 <a href="">View</a></span></div>
-                  <div class="sl_pad2"><label>ER,</label><span> Cost: $190 <a href="">View</a></span></div>
-                  <div class="sl_pad2"><label>Dental Implant,</label><span> Cost: $190 <a href="">View</a></span></div>
-                </div>
-              </div>
-            </li>
-
-            <li class="mapres-item even">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-                <div class="colorBox" style="background-color: #9999ff"></div>
-              </div>
-            </li>
-
-            <li class="mapres-item even active">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-              </div>
-            </li>
-
-            <li class="mapres-item even">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-                <div class="colorBox" style="background-color: #9999ff"></div>
-              </div>
-            </li>
-
-            <li class="mapres-item even">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-              </div>
-            </li>
-
-            <li class="mapres-item even">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-                <div class="colorBox" style="background-color: #9999ff"></div>
-              </div>
-            </li>
-
-            <li class="mapres-item even">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-              </div>
-            </li>
-
-            <li class="mapres-item even">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-                <div class="colorBox" style="background-color: #9999ff"></div>
-              </div>
-            </li>
-
-            <li class="mapres-item even">
-              <header class="mapres-header">
-                <h4 class="mapres-title">Anu Amara</h4>
-                <span class="mapres-miles">260.4 Miles</span>
-              </header>
-              <div class="mapres-address">
-                <strong>Address :</strong>1601 Main Street, Suite 209 Richmond, TX 77469
-              </div>
-              <div class="mapres-subinfo">
-                <a class="mapres-subinfo-direction" href=""><img src="http://www.wm4dmap.com/dev/wp-content/plugins/ajax-store-locator-wordpress/images/icon/direction.png" alt="Get Directions"></a>
-              </div>
-            </li>
-*/ ?>
-          </ul>
-        </div><!--mapresults-list-wrapper-->
- <? /*
-        <div class="map-pages">&nbsp;
-         <ul class="map-pages-list">
-            <li><a href="">Prev</a></li>
-            <li><a href="">1</a></li>
-            <li><a href="" class="map-pages-list-current">2</a></li>
-            <li><a href="">3</a></li>
-            <li><a href="">4</a></li>
-            <li><a href="">5</a></li>
-            <li><a href="">Next</a></li>
-          </ul>
-
-        </div>
-
-*/ ?>
-
-      </section>
-
-<? /*
- 			<div id="sloc_leftBar" style="width:300px;float:<?php echo $MapPosition; ?>;diplay:none">
-
-					<?php if($SearchMode == "SM"): ?>
-						<div id="sl_new_searchResult" class="sl_clear">
-							<ul class="sl_SearchR">
-							</ul>
-						</div>
-					<?php endif; ?>
-
-					<div style="clear: both;">
-					</div>
-
-
-				</div>
-			</div>
-*/ ?>
-<? /*
-			<div style="float:<?php echo $MapPosition; ?>; width:13px;">
-				<a href="javascript:void(0);" alt="Hide" title="Hide" id="hrHide" class="arr<?php echo $MapPosition; ?>" >&nbsp;</a>
-			</div>
-*/ ?>           
-			<div id="sl_map_form">
-				<form  method="post" action="#" id="sl_frmGetDirection" onsubmit="return callDirectionSub();">
-					<input type="hidden" id="sloc_hdfLat" name="sloc_hdfLat" />
-					<input type="hidden" id="sloc_hdfLng" name="sloc_hdfLng" />
-						<h3 id="dirTitle" class="dirTitles" ><?php _e( 'Get Your Directions', self::TEXT_DOMAIN ); ?></h3>
-						<span></span>
-						<div id="sl_map_form_form">
-							<label><strong><?php _e( 'From', self::TEXT_DOMAIN ); ?> :</strong> <input class="spritedd" name="fromdir" id="fromdir"/></label>
-							<label><strong><?php _e( 'To', self::TEXT_DOMAIN ); ?> :</strong> <input class="spritedd" name="todir" id="todir"/></label>
-							<div class="sl_pad5" style="height:25px;">
-								<div class="fl"><label style="padding-top: 3px;"><strong><?php _e( 'Showing Distance In', self::TEXT_DOMAIN ); ?> : </label></strong></div>
-								<div class="fl">
-									<div class="fl">
-										<input type="radio" name="rdUnit" id="rdUnitKm" class="fl" checked="checked" /><label style="padding-top: 3px;width: 60px;"><?php _e( 'KM', self::TEXT_DOMAIN ); ?></label>
-									</div>
-									<div class="fl">
-										<input type="radio" name="rdUnit" id="rdUnitMi" class="fl"/><label style="padding-top: 3px;width: 60px;"><?php _e( 'Miles', self::TEXT_DOMAIN ); ?></label>
-									</div>
-								</div>
-							</div>
-							<div id="actions" class="clear">
-								<div class="sl_msg_box fl" id="sl_err_msg" style="width:71%"></div>
-								<div class="fl" style="margin-top:5px; margin-left:4px;"><a class="sloc_button" id="sl_GetDirec" href="javascript:void(0)" onclick="return getDir();"><?php _e( 'Get Directions', self::TEXT_DOMAIN ); ?></a></div>
-							</div>
-						</div>
-						<a id="close_x" class="close sprited" href="javascript:void(0);"><?php _e( 'close', self::TEXT_DOMAIN ); ?></a>
-				</form>
-            </div>
-
-			<div style='display:none'>
-				<input type="hidden" id="sloc_hdfOLat" name="sloc_hdfOLat" />
-				<input type="hidden" id="sloc_hdfOLng" name="sloc_hdfOLng" />
-				<input type="hidden" id="sloc_hdfAddress" name="sloc_hdfAddress" />
-				<input type="hidden" id="sloc_hdfORad" name="sloc_hdfORad" />
-				<input type="hidden" id="sloc_hdfORadTy" name="sloc_hdfORadTy" />
-				<input type="hidden" id="sloc_hdfOCatId" name="sloc_hdfOCatId" value="0" />
-			</div>

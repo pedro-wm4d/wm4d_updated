@@ -1,41 +1,40 @@
-<?php	
-	wp_enqueue_script('sl_admin_colorbox_script', plugins_url( '/js/plugin/jquery.colorbox.js', dirname(__FILE__) ), '', false, true);
-	wp_enqueue_script('sl_admin_iphonecheck_script', plugins_url( '/js/plugin/iPhone-Checkbox.js', dirname(__FILE__) ), '', false, true);	
+<?php
+    wp_enqueue_script('sl_admin_colorbox_script', plugins_url('/js/plugin/jquery.colorbox.js', dirname(__FILE__)), '', false, true);
+    wp_enqueue_script('sl_admin_iphonecheck_script', plugins_url('/js/plugin/iPhone-Checkbox.js', dirname(__FILE__)), '', false, true);
 
-	$sql_str = "SELECT * FROM `$sl_tb_mapsetting` LIMIT 1";
-	$MapId= $ZoomLevel= $MapType= $ControlPosition = $Lat = $Lng = $Address = $RadType = $customCity = $map_api_key = "";
-	$FunType = __( 'Save', self::TEXT_DOMAIN );
-	$ZoomControl = $PanControl = $StreetViewControl = $Map_Lang = "";
-	$sl_select_obj = $wpdb->get_results( $sql_str );
-	foreach ($sl_select_obj as $sl_mapset_row) {
-		$MapId 				= $sl_mapset_row->id;
-		$ZoomLevel 			= $sl_mapset_row->zoomlevel;
-		$MapType			= $sl_mapset_row->maptype;
-		$Rad				= $sl_mapset_row->radius;
-		if($sl_mapset_row->zoomcontrol == 1){
-			$ZoomControl 		= "checked='checked'";
-		}
-		else{
-			$ZoomControl ="";
-		}
-		$PanControl 		= ($sl_mapset_row->pancontrol == 1) ? "checked='checked'" : "";
-		$StreetViewControl 	= ($sl_mapset_row->streetviewcontrol == 1) ? "checked='checked'" : "";
-		$ControlPosition 	= $sl_mapset_row->controlposition;
-		$Lat 				= $sl_mapset_row->lat;
-		$Lng 				= $sl_mapset_row->lng;
-		$Address 			= $sl_mapset_row->address;
-		$RadType 			= $sl_mapset_row->radiustype;
-		$customCity			= $sl_mapset_row->customcity;
-		$Map_Lang			= $sl_mapset_row->map_language;
-		$map_api_key		= $sl_mapset_row->map_api_key;
-		$FunType			= __( 'Update', self::TEXT_DOMAIN );
-	}					
+    $sql_str = "SELECT * FROM `$sl_tb_mapsetting` LIMIT 1";
+    $MapId = $ZoomLevel = $MapType = $ControlPosition = $Lat = $Lng = $Address = $RadType = $customCity = $map_api_key = '';
+    $FunType = __('Save', self::TEXT_DOMAIN);
+    $ZoomControl = $PanControl = $StreetViewControl = $Map_Lang = '';
+    $sl_select_obj = $wpdb->get_results($sql_str);
+    foreach ($sl_select_obj as $sl_mapset_row) {
+        $MapId = $sl_mapset_row->id;
+        $ZoomLevel = $sl_mapset_row->zoomlevel;
+        $MapType = $sl_mapset_row->maptype;
+        $Rad = $sl_mapset_row->radius;
+        if ($sl_mapset_row->zoomcontrol == 1) {
+            $ZoomControl = "checked='checked'";
+        } else {
+            $ZoomControl = '';
+        }
+        $PanControl = ($sl_mapset_row->pancontrol == 1) ? "checked='checked'" : '';
+        $StreetViewControl = ($sl_mapset_row->streetviewcontrol == 1) ? "checked='checked'" : '';
+        $ControlPosition = $sl_mapset_row->controlposition;
+        $Lat = $sl_mapset_row->lat;
+        $Lng = $sl_mapset_row->lng;
+        $Address = $sl_mapset_row->address;
+        $RadType = $sl_mapset_row->radiustype;
+        $customCity = $sl_mapset_row->customcity;
+        $Map_Lang = $sl_mapset_row->map_language;
+        $map_api_key = $sl_mapset_row->map_api_key;
+        $FunType = __('Update', self::TEXT_DOMAIN);
+    }
 ?>
 				
 <script type="text/javascript">
 var map;
 var marker;
-var sl_plugin_url = "<?php echo plugins_url('/',  dirname(__FILE__)); ?>";
+var sl_plugin_url = "<?php echo plugins_url('/', dirname(__FILE__)); ?>";
 var geocoder = new google.maps.Geocoder();
 google.maps.visualRefresh = true;
 var $ = jQuery.noConflict();
@@ -60,10 +59,10 @@ $('.iPhone :checkbox').iphoneStyle();
 		},
 		messages:{
 			'txtstoreLogo' : {
-				accept : '<?php _e( 'Allowed only image file', self::TEXT_DOMAIN ); ?>'
+				accept : '<?php _e('Allowed only image file', self::TEXT_DOMAIN); ?>'
 			},
 			'sloc_customCity' : {
-				minlength: '<?php _e( 'Atleast four character to be enter', self::TEXT_DOMAIN ); ?>',
+				minlength: '<?php _e('Atleast four character to be enter', self::TEXT_DOMAIN); ?>',
 			}
 		},	
    		submitHandler: function(form) {
@@ -84,7 +83,7 @@ $('.iPhone :checkbox').iphoneStyle();
 						}
 					}
 				}  				
-				giz_Locator.util.ajxBlockUI("<?php _e( 'Saving Data', self::TEXT_DOMAIN );?>...", true, "success", sl_plugin_url);
+				giz_Locator.util.ajxBlockUI("<?php _e('Saving Data', self::TEXT_DOMAIN); ?>...", true, "success", sl_plugin_url);
 				var cbGoogle 	= "0";
 			 	var cbFacebook	= $('#sloc_cbFacebook').is(':checked') ? "1" : "0";
 				var cbTwitter	= $('#sloc_cbTwitter').is(':checked') ? "1" : "0";
@@ -124,7 +123,7 @@ $('.iPhone :checkbox').iphoneStyle();
 				formdata.append("sloc_mapAPIKey", jQuery('#sloc_mapAPIKey').val());
 				formdata.append('action', 'sl_dal_mapsettings');		
 				
-				giz_Locator.util.ajaxFile("admin-ajax.php","POST", formdata ,ajResult, "<?php _e( 'Data has been saved successfully', self::TEXT_DOMAIN ); ?>.");
+				giz_Locator.util.ajaxFile("admin-ajax.php","POST", formdata ,ajResult, "<?php _e('Data has been saved successfully', self::TEXT_DOMAIN); ?>.");
 				if(jQuery('#sloc_btnSave').val() == "Save")
 					giz_Locator.util.clearform('#frmMapSettings');
    		}
@@ -136,9 +135,9 @@ $('.iPhone :checkbox').iphoneStyle();
 	jQuery("#sl_frmRadius").validate({		
    		submitHandler: function(form) {
 			closeOverlay();
-			giz_Locator.util.ajxBlockUI("<?php _e( 'Saving Data', self::TEXT_DOMAIN );?>...", true, "success", sl_plugin_url);
+			giz_Locator.util.ajxBlockUI("<?php _e('Saving Data', self::TEXT_DOMAIN); ?>...", true, "success", sl_plugin_url);
 			var sl_dal_mapset = { action: 'sl_dal_mapsettings', FunType : 'RadiusSave', sloc_Radius: jQuery('#sloc_tbRadius').val() };
-			giz_Locator.util.ajax("admin-ajax.php","POST", sl_dal_mapset, ajRadResult, "<?php _e( 'Data has been saved successfully', self::TEXT_DOMAIN ); ?>.");
+			giz_Locator.util.ajax("admin-ajax.php","POST", sl_dal_mapset, ajRadResult, "<?php _e('Data has been saved successfully', self::TEXT_DOMAIN); ?>.");
 			giz_Locator.util.clearform('#sl_frmRadius');
    		}
 	});
@@ -146,9 +145,9 @@ $('.iPhone :checkbox').iphoneStyle();
 	jQuery('#sloc_removeRadius').on('click', function(){
 		var rad = jQuery('#sloc_ddlRadius').val();
 		if(rad.length > 0){			
-			giz_Locator.util.ajxBlockUI("<?php _e( 'Deleting Data', self::TEXT_DOMAIN );?>...", true, "success", sl_plugin_url);
+			giz_Locator.util.ajxBlockUI("<?php _e('Deleting Data', self::TEXT_DOMAIN); ?>...", true, "success", sl_plugin_url);
 			var sl_dal_mapset = { action: 'sl_dal_mapsettings', FunType : 'RadiusDelete', sloc_Radius:rad };			
-			giz_Locator.util.ajax("admin-ajax.php","POST", sl_dal_mapset, ajRadResult, "<?php _e( 'Data has been deleted successfully', self::TEXT_DOMAIN ); ?>.");
+			giz_Locator.util.ajax("admin-ajax.php","POST", sl_dal_mapset, ajRadResult, "<?php _e('Data has been deleted successfully', self::TEXT_DOMAIN); ?>.");
 		}
 		else{
 			alert("Please Select Radius to Delete");
@@ -325,7 +324,7 @@ function ajRadResult(returnVal){
 			giz_Locator.util.ajaxSer("admin-ajax.php","POST", sl_dal_mapset, ajRadiusVal);
 		}
 		else{
-			jQuery('.Raderror').html("<?php _e( 'Failed To Save Radius', self::TEXT_DOMAIN ); ?>..");
+			jQuery('.Raderror').html("<?php _e('Failed To Save Radius', self::TEXT_DOMAIN); ?>..");
 		}
 }
 
@@ -348,196 +347,220 @@ function ajReturnVal(returnVal){
 }
 </script>
 <div class="sl_menu_icon sloc_mapset sl_icon32" ><br /></div>
-			<h2 class="sl_menu_title"><?php _e( 'Map Settings', self::TEXT_DOMAIN ); ?></h2>				
+			<h2 class="sl_menu_title"><?php _e('Map Settings', self::TEXT_DOMAIN); ?></h2>				
 		<div class="clearb">
 			<div id="leftBar">
-			<h3><?php _e( 'Plugin Settings', self::TEXT_DOMAIN ); ?></h3>
+			<h3><?php _e('Plugin Settings', self::TEXT_DOMAIN); ?></h3>
 			<div class="iPhone">
-				<?php 
-					$sql_str = "SELECT * FROM `$sl_tb_plugsetting`";
-					$gPlus= $fBook= $Tweet= $pinIt= $wHours = "";
-					$sl_select_obj = $wpdb->get_results( $sql_str );
-					foreach ($sl_select_obj as $sl_plugset_row) {
-						$gPlus 		= ($sl_plugset_row->google 		== "1") ? "checked='checked'" : "";
-						$fBook 		= ($sl_plugset_row->facebook 	== "1") ? "checked='checked'" : "";
-						$Tweet		= ($sl_plugset_row->twitter 	== "1") ? "checked='checked'" : "";
-						$pinIt 		= ($sl_plugset_row->printrest 	== "1") ? "checked='checked'" : "";
-						$wHours 	= ($sl_plugset_row->info		== "1") ? "checked='checked'" : "";
-					}
-				?>
+				<?php
+                    $sql_str = "SELECT * FROM `$sl_tb_plugsetting`";
+                    $gPlus = $fBook = $Tweet = $pinIt = $wHours = '';
+                    $sl_select_obj = $wpdb->get_results($sql_str);
+                    foreach ($sl_select_obj as $sl_plugset_row) {
+                        $gPlus = ($sl_plugset_row->google == '1') ? "checked='checked'" : '';
+                        $fBook = ($sl_plugset_row->facebook == '1') ? "checked='checked'" : '';
+                        $Tweet = ($sl_plugset_row->twitter == '1') ? "checked='checked'" : '';
+                        $pinIt = ($sl_plugset_row->printrest == '1') ? "checked='checked'" : '';
+                        $wHours = ($sl_plugset_row->info == '1') ? "checked='checked'" : '';
+                    }
+                ?>
 					
 					<div class="pad5 clearb">
-						<div class="fl wd150"><label><?php _e( 'Facebook', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd150"><label><?php _e('Facebook', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl"><input id="sloc_cbFacebook" name="sloc_cbFacebook" type="checkbox" <?php echo $fBook; ?> /></div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd150"><label><?php _e( 'Twitter', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd150"><label><?php _e('Twitter', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl"><input id="sloc_cbTwitter" name="sloc_cbTwitter" type="checkbox" <?php echo $Tweet; ?> /></div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd150"><label><?php _e( 'Pinterest', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd150"><label><?php _e('Pinterest', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl"><input id="sloc_cbPinterest" name="sloc_cbPinterest" type="checkbox" <?php echo $pinIt; ?> /></div>
 					</div>									
 			</div>
-			<h3 class="clearb"><?php _e( 'Map Settings', self::TEXT_DOMAIN ); ?></h3>
+			<h3 class="clearb"><?php _e('Map Settings', self::TEXT_DOMAIN); ?></h3>
 				<form id="sl_frmMapSettings" name="sl_frmMapSettings" action="#"	enctype="multipart/form-data" method="post" >
 				
 				<input id="sloc_hdfMapSettingsId" name="sloc_hdfMapSettingsId" type="hidden" value = "<?php echo $MapId; ?>" />
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Map API Key', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Map API Key', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<input id="sloc_mapAPIKey" name="sloc_mapAPIKey" type="text" class="inp-form" style="width:230px;" value="<?php echo $map_api_key; ?>"  />
 						</div>
 					</div>
 					<div class="pad5">
 						<div class="fl wd60">
-						<label><?php _e( 'Zoom Level', self::TEXT_DOMAIN ); ?></label></div>
+						<label><?php _e('Zoom Level', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<select id="sloc_ddlZoom" name="sloc_ddlZoom" class="sl_input_sel" style="width:65px;">
-							<?php 
-								for($i = 1; $i<=18; $i++):
-							?>
-							<option value="<?php echo $i; ?>" <?php if($ZoomLevel == $i){ echo ' selected="selected"'; } ?> ><?php echo $i; ?></option>
-							<?php 
-							endfor;											
-							?>
+							<?php
+                                for ($i = 1; $i <= 18; ++$i):
+                            ?>
+							<option value="<?php echo $i; ?>" <?php if ($ZoomLevel == $i) {
+                                echo ' selected="selected"';
+                            } ?> ><?php echo $i; ?></option>
+							<?php
+                            endfor;
+                            ?>
 							</select>
 						</div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Map Type', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Map Type', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<select id="sloc_ddlMapType" name="sloc_ddlMapType" class="sl_input_sel" style="width:100px;">
-								<option value="HYBRID" 		<?php if($MapType == "HYBRID"){ echo ' selected="selected"'; } ?> >Hybrid</option>
-								<option value="ROADMAP" 	<?php if($MapType == "ROADMAP"){ echo ' selected="selected"'; } ?> >Roadmap</option>
-								<option value="SATELLITE" 	<?php if($MapType == "SATELLITE"){ echo ' selected="selected"'; } ?> >Satellite</option>	
-								<option value="TERRAIN" 	<?php if($MapType == "TERRAIN"){ echo ' selected="selected"'; } ?> >Terrain</option>										
+								<option value="HYBRID" 		<?php if ($MapType == 'HYBRID') {
+                                echo ' selected="selected"';
+                            } ?> >Hybrid</option>
+								<option value="ROADMAP" 	<?php if ($MapType == 'ROADMAP') {
+                                echo ' selected="selected"';
+                            } ?> >Roadmap</option>
+								<option value="SATELLITE" 	<?php if ($MapType == 'SATELLITE') {
+                                echo ' selected="selected"';
+                            } ?> >Satellite</option>	
+								<option value="TERRAIN" 	<?php if ($MapType == 'TERRAIN') {
+                                echo ' selected="selected"';
+                            } ?> >Terrain</option>										
 							</select>
 						</div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Measurement', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Measurement', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<select id="sloc_ddlRadiusType" name="sloc_ddlRadiusType" class="sl_input_sel" style="width:75px;">
-								<option value="KM" 		<?php if($RadType == "KM"){ echo ' selected="selected"'; } ?> ><?php _e( 'KM', self::TEXT_DOMAIN ); ?></option>
-								<option value="Miles" 	<?php if($RadType == "Miles"){ echo ' selected="selected"'; } ?> ><?php _e( 'Miles', self::TEXT_DOMAIN ); ?></option>
-								<option value="Both" <?php if($RadType == "Both"){ echo ' selected="selected"'; } ?>><?php _e( 'Both', self::TEXT_DOMAIN ); ?></option>
+								<option value="KM" 		<?php if ($RadType == 'KM') {
+                                echo ' selected="selected"';
+                            } ?> ><?php _e('KM', self::TEXT_DOMAIN); ?></option>
+								<option value="Miles" 	<?php if ($RadType == 'Miles') {
+                                echo ' selected="selected"';
+                            } ?> ><?php _e('Miles', self::TEXT_DOMAIN); ?></option>
+								<option value="Both" <?php if ($RadType == 'Both') {
+                                echo ' selected="selected"';
+                            } ?>><?php _e('Both', self::TEXT_DOMAIN); ?></option>
 							</select>
 						</div>										
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Radius', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Radius', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<select id="sloc_ddlRadius" name="sloc_ddlRadius" class="sl_input_sel" style="width:75px">	
-								<?php 
-									$sql_str = "SELECT * FROM `$sl_tb_mapradius`";
-									$sl_select_obj = $wpdb->get_results( $sql_str );
-									foreach ($sl_select_obj as $sl_maprad_row) {
-										$sel = '';
-										if($Rad == $sl_maprad_row->radius){  $sel = ' selected="selected"';  }
-										echo "<option value=".$sl_maprad_row->radius." $sel >".$sl_maprad_row->radius."</option>";
-									}
-								?>
+								<?php
+                                    $sql_str = "SELECT * FROM `$sl_tb_mapradius`";
+                                    $sl_select_obj = $wpdb->get_results($sql_str);
+                                    foreach ($sl_select_obj as $sl_maprad_row) {
+                                        $sel = '';
+                                        if ($Rad == $sl_maprad_row->radius) {
+                                            $sel = ' selected="selected"';
+                                        }
+                                        echo '<option value='.$sl_maprad_row->radius." $sel >".$sl_maprad_row->radius.'</option>';
+                                    }
+                                ?>
 							</select>
 						</div>
 						<div class="fl">
-							<a href="#" id="sloc_addRadius" name="sloc_addRadius" alt="<?php _e( 'Add Radius', self::TEXT_DOMAIN ); ?>" ><img src="<?php echo plugins_url( '/images/icon/icon_plus.png', dirname(__FILE__) ); ?>" alt="<?php _e( 'Add Radius', self::TEXT_DOMAIN ); ?>" title="<?php _e( 'Add Radius', self::TEXT_DOMAIN ); ?>" style="padding: 5px;" /></a>
+							<a href="#" id="sloc_addRadius" name="sloc_addRadius" alt="<?php _e('Add Radius', self::TEXT_DOMAIN); ?>" ><img src="<?php echo plugins_url('/images/icon/icon_plus.png', dirname(__FILE__)); ?>" alt="<?php _e('Add Radius', self::TEXT_DOMAIN); ?>" title="<?php _e('Add Radius', self::TEXT_DOMAIN); ?>" style="padding: 5px;" /></a>
 						</div>
 						<div class="fl">
-							<a href="#" id="sloc_removeRadius" name="sloc_removeRadius" alt="<?php _e( 'Remove Radius', self::TEXT_DOMAIN ); ?>" ><img src="<?php echo plugins_url( '/images/icon/icon_minus.png', dirname(__FILE__) ); ?>" alt="<?php _e( 'Remove Radius', self::TEXT_DOMAIN ); ?>" title="<?php _e( 'Remove Radius', self::TEXT_DOMAIN ); ?>" style="padding: 5px;" /></a>
+							<a href="#" id="sloc_removeRadius" name="sloc_removeRadius" alt="<?php _e('Remove Radius', self::TEXT_DOMAIN); ?>" ><img src="<?php echo plugins_url('/images/icon/icon_minus.png', dirname(__FILE__)); ?>" alt="<?php _e('Remove Radius', self::TEXT_DOMAIN); ?>" title="<?php _e('Remove Radius', self::TEXT_DOMAIN); ?>" style="padding: 5px;" /></a>
 						</div>
 						</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Zoom Control', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Zoom Control', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl padT10 iPhone">
 							<input id="sloc_cbZoomControl" name="sloc_cbZoomControl" type="checkbox" <?php echo $ZoomControl; ?>  />
 						</div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Pan Control', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Pan Control', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl padT10 iPhone">
 							<input id="sloc_cbpanControl" name="sloc_cbpanControl" type="checkbox" <?php echo $PanControl; ?>  />
 						</div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'StreetView', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('StreetView', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl padT10 iPhone">
 							<input id="sloc_cbStreet" name="sloc_cbStreet" type="checkbox" <?php echo $StreetViewControl; ?>  />
 						</div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Control Position', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Control Position', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
-							<?php 
-								$ControlPositionArr = array("LEFT_BOTTOM" => "Left Bottom", "LEFT_TOP" => "Left Top", "RIGHT_BOTTOM" => "Right Bottom", "RIGHT_TOP" => "Right Top");											
-							?>
+							<?php
+                                $ControlPositionArr = ['LEFT_BOTTOM' => 'Left Bottom', 'LEFT_TOP' => 'Left Top', 'RIGHT_BOTTOM' => 'Right Bottom', 'RIGHT_TOP' => 'Right Top'];
+                            ?>
 							<select id="sloc_ddlControlPosition" name="sloc_ddlControlPosition" class="sl_input_sel" style="width:110px;">
 								
 							<?php
-								foreach ($ControlPositionArr as $key => $value) {
-							?>
-							<option value="<?php echo $key; ?>" <?php if($ControlPosition == $key){ echo ' selected="selected"'; } ?> ><?php echo $value; ?></option>
-							<?php 
-								}
-							?>									
+                                foreach ($ControlPositionArr as $key => $value) {
+                                    ?>
+							<option value="<?php echo $key; ?>" <?php if ($ControlPosition == $key) {
+                                        echo ' selected="selected"';
+                                    } ?> ><?php echo $value; ?></option>
+							<?php
+                                }
+                            ?>									
 							</select>
 						</div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Map Language', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Map Language', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<select id="sloc_ddlMapLang" name="sloc_ddlMapLang" class="sl_input_sel" style="width:160px">	
-								<?php 
-									$sql_str = "SELECT * FROM `$sl_tb_maplanguage`";
-									$sl_select_obj = $wpdb->get_results( $sql_str );
-									foreach ($sl_select_obj as $sl_maplng_row) {
-										$sel_Lng = '';
-										if($Map_Lang == $sl_maplng_row->language_code){  $sel_Lng = ' selected="selected"';  }
-										echo "<option value=".$sl_maplng_row->language_code." $sel_Lng >".$sl_maplng_row->language."</option>";
-									}
-								?>
+								<?php
+                                    $sql_str = "SELECT * FROM `$sl_tb_maplanguage`";
+                                    $sl_select_obj = $wpdb->get_results($sql_str);
+                                    foreach ($sl_select_obj as $sl_maplng_row) {
+                                        $sel_Lng = '';
+                                        if ($Map_Lang == $sl_maplng_row->language_code) {
+                                            $sel_Lng = ' selected="selected"';
+                                        }
+                                        echo '<option value='.$sl_maplng_row->language_code." $sel_Lng >".$sl_maplng_row->language.'</option>';
+                                    }
+                                ?>
 							</select>
 						</div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Country', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Country', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<select id="sloc_ddlCountry" name="sloc_ddlCountry" class="sl_input_sel" onchange = "return CountryGeo(this.value)">						
-						<?php 
-						$sql_str = "SELECT * FROM `$sl_tb_country`";
-						$sql_select_obj = $wpdb->get_results($sql_str);
-						foreach($sql_select_obj as $sl_country_row){
-							$sel_cu = "";
-							if(trim($Address) == trim($sl_country_row->country)){  $sel_cu = ' selected="selected"';  }
-							echo '<option value="'.$sl_country_row->country.'" '.$sel_cu.' >'.$sl_country_row->country.'</option>';
-						}
-						?>
+						<?php
+                        $sql_str = "SELECT * FROM `$sl_tb_country`";
+                        $sql_select_obj = $wpdb->get_results($sql_str);
+                        foreach ($sql_select_obj as $sl_country_row) {
+                            $sel_cu = '';
+                            if (trim($Address) == trim($sl_country_row->country)) {
+                                $sel_cu = ' selected="selected"';
+                            }
+                            echo '<option value="'.$sl_country_row->country.'" '.$sel_cu.' >'.$sl_country_row->country.'</option>';
+                        }
+                        ?>
 					
 							</select>
 						</div>	
 					</div>
 					<div class="pad5 clearb" style="text-align:center"><label>Or</label></div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Custom Location', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Custom Location', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<input id="sloc_customCity" name="sloc_customCity" type="text"  class="inp-form" style="width: 230px;" onblur="return customCity(this.value)" value="<?php echo $customCity; ?>"  />
 						</div>
 					</div>
 					<div class="pad5 clearb">
-						<div class="fl wd60"><label><?php _e( 'Def. Store Logo', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Def. Store Logo', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fileContain fl wd250">
 							<input type="file" id="sloc_fuStoreLogo" name="sloc_fuStoreLogo" onchange="getElementById('txtstoreLogo').value = getElementById('sloc_fuStoreLogo').value;" class="sl_browseHide" />
 							<input type="hidden" id="txtstoreLogo" name="txtstoreLogo" />
 						</div>
 					</div>
 					<div class="pad5 clearb" style="display:none">
-						<div class="fl wd60"><label><?php _e( 'Latitude', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Latitude', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<input id="sloc_tbLat" name="sloc_tbLat" class="required inp-form" type="text" value = "<?php echo $Lat; ?>" readonly="readonly" />
 						</div>
 					</div>
 					<div class="pad5 clearb" style="display:none">
-						<div class="fl wd60"><label><?php _e( 'Longitude', self::TEXT_DOMAIN ); ?></label></div>
+						<div class="fl wd60"><label><?php _e('Longitude', self::TEXT_DOMAIN); ?></label></div>
 						<div class="fl">
 							<input id="sloc_tbLng" name="sloc_tbLng" class="required inp-form" type="text" value = "<?php echo $Lng; ?>" readonly="readonly" />
 						</div>
@@ -562,11 +585,11 @@ function ajReturnVal(returnVal){
 <div id="sl_frmAddNew"  class="overlaypanel" >
 	<form id="sl_frmRadius" name="sl_frmRadius" action="#" enctype="multipart/form-data" method="post">
 		<div class="pad5 pal5">
-			<div class="fl wd60"><label><?php _e( 'New Radius', self::TEXT_DOMAIN ); ?></label></div>
+			<div class="fl wd60"><label><?php _e('New Radius', self::TEXT_DOMAIN); ?></label></div>
 			<div class="fl"><input id="sloc_tbRadius" name="sloc_tbRadius" class="required inp-form number" type="text" /></div>			
 		</div>
 		<span class="error Raderror"></span>
-		<div class="pad5 wd200 clearb pal5"><input id="sloc_btnRadSave" name="sloc_btnRadSave" class="btn btn-blue" type="submit" value="<?php _e( 'Save', self::TEXT_DOMAIN ); ?>" /> </div>
+		<div class="pad5 wd200 clearb pal5"><input id="sloc_btnRadSave" name="sloc_btnRadSave" class="btn btn-blue" type="submit" value="<?php _e('Save', self::TEXT_DOMAIN); ?>" /> </div>
    </form>
 
 </div>

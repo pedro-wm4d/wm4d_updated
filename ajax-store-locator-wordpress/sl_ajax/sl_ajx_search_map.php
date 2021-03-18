@@ -6,7 +6,7 @@ function sl_dal_searchlocation_cbf()
 {
     if (isset($_REQUEST['funMethod'])) {
         global $wpdb;
-        $sl_gizmo_store = new Gizmo_Store(); //first we get the database that will be used
+        $sl_gizmo_store = new Gizmo_Store(); //first we get the database tables that will be used
         $sl_tb_appsetting = $sl_gizmo_store->sl_return_dbTable('APS');
         $sl_tb_stores = $sl_gizmo_store->sl_return_dbTable('SRO');
         $sl_tb_storecat = $sl_gizmo_store->sl_return_dbTable('STC');
@@ -142,6 +142,7 @@ function sl_dal_searchlocation_cbf()
                     }
                 }
             }
+
             echo json_encode($sl_select_obj);
         } elseif ($funMethod == 'BrowseList') {
             $CatStr = '';
