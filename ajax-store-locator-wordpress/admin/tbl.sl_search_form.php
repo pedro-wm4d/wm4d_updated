@@ -721,7 +721,7 @@ jQuery(document).ready(function($) {
     } else {
         if ($SearchMode == 'SM' && $LoadLoc == 1) {
             ?>
-        LoadAllLocation();
+        LoadAllLocation(); 
         <?php
         } else { ?>
         LoadWOQ();
@@ -735,10 +735,9 @@ jQuery(document).ready(function($) {
 
     <?php endif; ?>
 
-    /**** Get Latitude and Longitude from Search Event ***/
+    /**** Get Latitude and Longitude from Search Event. Activates when user clicks on Search ***/
     jQuery('#sl_nearStore').bind('click', function () {  
-        if (jQuery('#sl_nearStore').attr('disabled') === 'disabled')
-            return;
+        if (jQuery('#sl_nearStore').attr('disabled') === 'disabled') { return; }
         jQuery('#sl_new_searchResult').empty();
         jQuery('.DHead').remove();
         jQuery('#sl_msgBox').text("");
@@ -760,6 +759,7 @@ jQuery(document).ready(function($) {
             CatId = [];
             jQuery('#sloc_hdfOCatId').val(CatId);
         }
+
         if (jQuery.trim(lCountry).length <= 0 && jQuery.trim(address).length <= 0 && jQuery.trim(lName).length <= 0) {
             jQuery('#sloc_tbPlace').addClass('sl_error_cls');
             jQuery('#sloc_tbPlace').focus();
@@ -772,7 +772,7 @@ jQuery(document).ready(function($) {
             jQuery('#sl_msgBox').text("<?php _e('Select radius', self::TEXT_DOMAIN); ?>.");
             jQuery('#sl_msgBox').removeClass('sl_success').addClass('sl_error').fadeOut(300).fadeIn(300);
         }
-        else { 
+        else { /* all data has been entered. Time to proceed */
             if (jQuery.trim(address).length <= 0) {
                 if ((jQuery.trim(lCountry).length <= 0) && (jQuery.trim(lName).length > 0)) lCountry = 'USA';
                 address = lCountry;
@@ -1132,8 +1132,8 @@ jQuery(document).ready(function($) {
     }
 
 
-    /*** Load All Locations***/
-    function LoadAllLocation() {
+    /*** Load All Locations. Loads when the application starts. This is the default method */
+    function LoadAllLocation() { 
         var type = "All";
         var selValue = '';
         var CatId = 2;
@@ -1331,11 +1331,7 @@ jQuery(document).ready(function($) {
                         if (labelId > 1) {
                             htmLabel = '<div style="padding-left:18%"><div style="background:url(' + plugin_path + ImgUrl + ') no-repeat; text-align: center;width: 206px;margin-top:-15px; height:27px"><span style="display:block; padding-top:3px" class="lblSpan">' + labelText + '</span></div></div>';
                         }
-                        /*
-                         var html1 = '<div class="sl_clear sl_info_Div"><div class="sl_pad5"><span style="font-weight:bold;font-size:15px; float:left;width: 270px;display:block;padding-left: 2px;margin-bottom: 2px">'+ name +'</span></div><div class="clear"></div>'+ htmLogo +'<div class="lisAdd" style="width:'+ add_width +'">'+
-                         '<div class="sl_pad5"><label style="font-weight:bold"><?php _e('Address', self::TEXT_DOMAIN); ?> : </label><span style="font-weight:normal">'+ address +'</span></div>'+ phone_fax + htmEmail + htmWeb +
-                         '</div></div><div style="clear:both"><div class="fl">'+ directionhtm +'</div></div>';
-                         */
+                       
                         var html1 = '<header class = "mapres-header" ><h4 class="mapres-title" > '+ name +'</h4><span class="mapres-miles" ></span></header><div class ="mapres-category mapres-c'+markers[i]["type"]+' round-corner">'+categories[markers[i]["type"]]+'</div>'
                             +'<div class="mapres-address" ><i class="mapres-sprite pin-icon" ></i> '+ address + '</div><div class="mapres-subinfo" > ' + directionhtm + '</div>';
 
@@ -1629,7 +1625,7 @@ jQuery(document).ready(function($) {
     }
 
     /*** Load Data Without Query string ***/
-    function LoadWOQ() {
+    function LoadWOQ() {  
         var sl_frontsearch_dal = {action: 'sl_dal_searchlocation', funMethod: 'LoadWithoutQuery', Location: 'Load'};
         giz_Locator.home.ajaxSer(admin_ajx, "POST", sl_frontsearch_dal, function (markers) {
             if (markers != null) {
@@ -1659,7 +1655,7 @@ jQuery(document).ready(function($) {
         LoadIniBrowse(Loc, LatLng[0], LatLng[2], store);
     }
 
-    function LoadIniBrowse(loc, lat, lan, store) {
+    function LoadIniBrowse(loc, lat, lan, store) { 
         jQuery('#sl_new_searchResult').empty();
         jQuery('.sloc_catDrop').hide();
         fullSiteWidth = jQuery('.giz_storeLocator').width();
@@ -1922,6 +1918,8 @@ jQuery(document).ready(function($) {
 
     /*** Make Marker for Query string data ***/
     function initialize_mapQ(loc, lat, lan, store) {
+         
+
         var windowsHeight = jQuery(window).height();
         var windowsWidth = jQuery(window).width();
         fullSiteWidth = jQuery('.giz_storeLocator').width();
@@ -2158,6 +2156,7 @@ jQuery(document).ready(function($) {
                         else if (i % 2 == 1) {
                             CSSclass = 'odd';
                         }
+                        /* append address to the right side of the window */
                         jQuery('<li  id =ida_' + i + ' class=' + CSSclass + '></li>').html(html).appendTo('.sl_SearchR');
                         bindInfoWindow(marker, map, infoWindow, html1, i);
                         htmPhone = '';
@@ -2228,7 +2227,7 @@ jQuery(document).ready(function($) {
     }
 
     /** Initialize The Map in Page Load ***/
-    function initialize_map(Lat, Lan) {
+    function initialize_map(Lat, Lan) {    
         fullSiteWidth = jQuery('.giz_storeLocator').width();
         var mapOptions = {
             center: new google.maps.LatLng(Lat, Lan),
@@ -2344,7 +2343,15 @@ jQuery(document).ready(function($) {
         }());
     }
 
-    /*** Find The Stores Near To Address Where user Entered ****/
+    /*** Find The Stores Near To Address Where user Entered 
+     * 
+     * @param {float} lat
+     * @param {float} lan
+     * @param {int} rad
+     * @param {string} RadType
+     * @param {string} CateId
+     * 
+    */
     function SearchStore(lat, lan, rad, RadType, CateId) {
         jQuery('.gm-style').removeClass('gm-style');
         fullSiteWidth = jQuery('.giz_storeLocator').width();
@@ -2618,6 +2625,7 @@ jQuery(document).ready(function($) {
                             CSSclass = 'odd';
                         }
                         <?php js_add2box(); ?>
+                        /* append list of addresses to right size of the window */
                         jQuery('<li  id =ida_' + i + ' class="mapres-item ' + CSSclass + '"></li>').html(html).appendTo('.sl_SearchR');
                         bindInfoWindow(marker, map, infoWindow, html_info, i);
                         htmPhone = '';
@@ -2711,12 +2719,12 @@ jQuery(document).ready(function($) {
  	    map.panTo(new google.maps.LatLng(lat, lan));						
 
         }, 3000);
-    }
+    }/* End of LoadStore */
 
     function getSearchResultHtml() {
     }
 
-    function getFeatureStyle(feature) {
+    function getFeatureStyle(feature) { 
 
         var styleNames = ['fillColor'];
         var res = {'strokeWeight': 2, 'strokeColor': 'white'};
@@ -2731,10 +2739,11 @@ jQuery(document).ready(function($) {
         }
         return res;
     }
-
+    /** 
+     * @param {object} marker
+    */
     function toggleHeatmap(marker) {
-	
- 	if (typeof(activeMarkers[marker["id"]]) == 'undefined' || activeMarkers[marker["id"]]== null) {						
+	    if (typeof(activeMarkers[marker["id"]]) == 'undefined' || activeMarkers[marker["id"]]== null) {						
 
             if (typeof(marker['heatmap']) != 'undefined' && marker['heatmap'] != null) {
                 marker['heatmap'].setMap(marker.getMap());
@@ -2753,21 +2762,16 @@ jQuery(document).ready(function($) {
             if (typeof(marker['heatmap']) != 'undefined' && marker['heatmap'] != null) {
                 marker['heatmap'].setMap(null);
             }
-            ;
-
+            
             delete(activeMarkers[marker["id"]]);
 
         }
-        ;
-       
         if (typeof(marker['heatmap_zipcodes']) != 'undefined' && marker['heatmap_zipcodes'] != null)
             var ft = null;
         activeZipcodes = [];
         for (var mid in activeMarkers) {
             if ($.isArray(activeMarkers[mid]['heatmap_zipcodes'])) {
                for (var zci = 0; zci < activeMarkers[mid]['heatmap_zipcodes'].length; zci++) {
-                    /*							console.log('in');
-                     */
                     ft = activeMarkers[mid]['heatmap'].getFeatureById(activeMarkers[mid]['heatmap_zipcodes'][zci]);
                     ft.setProperty('name', activeMarkers[mid]['name']);
                     if (typeof(activeZipcodes[activeMarkers[mid]['heatmap_zipcodes'][zci]]) != 'undefined') {
@@ -2776,28 +2780,25 @@ jQuery(document).ready(function($) {
                         activeZipcodes[activeMarkers[mid]['heatmap_zipcodes'][zci]] = Array(ft);
                     }
                 }
-                ;
                 activeMarkers[mid]['heatmap'].setStyle(function (feature) {
                     res = getFeatureStyle(feature);
                     res['visible'] = true;
+                    
                     return res;
-
-                    /*
-                     if (activeZipcodes[feature.getProperty("title")].length>1) {
-                     var res={'strokeColor':'red'};
-                     }
-                     return res;
-                     */
                 });
-
-
             }
-        }
-        ;
-
+        };
     }
 
-    /*** Info Window Or Marker Window ***/
+    /** Info Window Or Marker Window. This function is responsible for the addresses that appear when you click on any of the markers.
+     * 
+     *  @param {object} marker
+     *  @param {object} map
+     *  @param {object} infoWindow
+     *  @param {html} html
+     *  @param {int} id
+     * 
+    */
     function bindInfoWindow(marker, map, infoWindow, html, id) {
         /*** Event From Marker : Set Active Class for Address And Pop up The Info Window In Map **/
         google.maps.event.addListener(marker, 'click', function () {
@@ -2850,9 +2851,19 @@ jQuery(document).ready(function($) {
 
     }
 
-    /*** Info Window Or Marker Window ***/
+    /*** Info Window Or Marker Window. This funciton deals with the markers that appear in the initialization map
+     * 
+     * @param {object} marker
+     * @param {object} map
+     * @param {object} infoWindow
+     * @param {string} html
+     * @param {int} id
+     * @param {boolean} html
+     * 
+    */
     function bindInfoWindowN(marker, map, infoWindow, html, id, isList) {
         /*** Event From Marker : Set Active Class for Address And Pop up The Info Window In Map **/
+        html = "this is the html now: " + html;
         google.maps.event.addListener(marker, 'click', function () {
             infoWindow.setContent(html);
             infoWindow.open(map, marker);
@@ -2874,7 +2885,7 @@ jQuery(document).ready(function($) {
             });
         }
     }
-
+    
     function getMyHeight() {
         return "700px";
     }
@@ -3039,7 +3050,7 @@ jQuery(document).ready(function($) {
 		/*mapResized = true;*/
 	}
 
-	function animate(elm, begin, end, duration, fps) {
+	function animate(elm, begin, end, duration, fps) { 
 		  function easeInCubic (t, b, c, d) {
 		   return c*(t/=d)*t*t + b;
 		  }
@@ -3066,7 +3077,7 @@ jQuery(document).ready(function($) {
 	}
 
 
-	function resize() {
+	function resize() {  
 	  var mapdiv = document.getElementById("sl_front_map_canvas");
 	  var w = parseInt(mapdiv.style.width);
 	  if ((isNaN(w)) || (w < 90)) {
@@ -3213,7 +3224,7 @@ function callDirectionSub(){
 }
 
 /********** Getting Direction **************/
-	function getDir(){
+	function getDir() { 
 		var result_res = false;
 		if(jQuery('#fromdir').val().length <= 0){
 				jQuery('#fromdir').focus();
@@ -3633,23 +3644,7 @@ function show_tree($lst, $lv = 1)
 
           </ul>
         </div><!--mapresults-list-wrapper-->
- <?php /*
-        <div class="map-pages">&nbsp;
-         <ul class="map-pages-list">
-            <li><a href="">Prev</a></li>
-            <li><a href="">1</a></li>
-            <li><a href="" class="map-pages-list-current">2</a></li>
-            <li><a href="">3</a></li>
-            <li><a href="">4</a></li>
-            <li><a href="">5</a></li>
-            <li><a href="">Next</a></li>
-          </ul>
-
-        </div>
-
-*/ ?>
-
-      </section>
+     </section>
 
          
 			<div id="sl_map_form">

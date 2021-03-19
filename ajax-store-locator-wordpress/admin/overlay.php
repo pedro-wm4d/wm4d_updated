@@ -1,9 +1,10 @@
 <?php function ddd() { ?>
 <script>
-<?php 
+<?php
 }
-function js_get_vars($cats) {
-?>
+function js_get_vars($cats)
+{
+    ?>
 		  var infoWindowZip = new google.maps.InfoWindow;
 		  var colorSchemeMax=2;
 		  var colorScheme=0;
@@ -12,8 +13,9 @@ function js_get_vars($cats) {
 <?php
 }
 
-function js_get_more_info() {
-?>
+function js_get_more_info()
+{
+    ?>
 				if (loadAdwords) {
 						var moreInfo='<div class="mapres-subinfo">'+directionhtm+'</div>';
  						if ("procedures" in markers[i] && markers[i]['procedures'].length>0) {
@@ -36,7 +38,7 @@ function js_get_more_info() {
 							
 																				
 							markers[i]['heatmap'].setStyle(function (feature) {
-								res=getFeatureStyle(feature);
+								res= getFeatureStyle(feature);
 								res['visible']=false;
 								return res;
 							});
@@ -79,8 +81,9 @@ function js_get_more_info() {
 				}
 <?php
 }
-function js_add2box() {
-?>
+function js_add2box()
+{
+    ?>
 				if (loadAdwords) {
 						html_info +=moreInfo;
 						html +=moreInfo;
